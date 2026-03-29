@@ -1,40 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNumber } from 'class-validator';
+import { IsBoolean, IsString } from 'class-validator';
 
 export class CreateStudentsEventDto {
   @ApiProperty({
-    example: 1,
-    description: "This is the student's ID number",
+    example: '60c72b2f9b1d8b001c8e4b5a',
+    description: "This is the student's ID string",
   })
-  @IsNumber(
-    {},
-    {
-      message: () =>
-        JSON.stringify({
-          uz: 'studentId son bo‘lishi kerak!',
-          ru: 'studentId должен быть числом!',
-          en: 'studentId must be a number!',
-        }),
-    },
-  )
-  studentId: number;
+  @IsString({
+    message: () =>
+      JSON.stringify({
+        uz: 'studentId matn bo‘lishi kerak!',
+        ru: 'studentId должен быть строкой!',
+        en: 'studentId must be a string!',
+      }),
+  })
+  studentId: string;
 
   @ApiProperty({
-    example: 1,
-    description: "This is the event's ID number",
+    example: '60c72b2f9b1d8b001c8e4b5b',
+    description: "This is the event's ID string",
   })
-  @IsNumber(
-    {},
-    {
-      message: () =>
-        JSON.stringify({
-          uz: 'eventId son bo‘lishi kerak!',
-          ru: 'eventId должен быть числом!',
-          en: 'eventId must be a number!',
-        }),
-    },
-  )
-  eventId: number;
+  @IsString({
+    message: () =>
+      JSON.stringify({
+        uz: 'eventId matn bo‘lishi kerak!',
+        ru: 'eventId должен быть строкой!',
+        en: 'eventId must be a string!',
+      }),
+  })
+  eventId: string;
 
   @ApiProperty({
     example: true,

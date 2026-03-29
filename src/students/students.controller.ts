@@ -8,7 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentsService } from './students.service';
@@ -25,13 +25,13 @@ export class StudentsController {
     status: 200,
     description: 'Successfully updated student xp and points',
   })
-  @Patch("update-xp-point/:id")
+  @Patch('update-xp-point/:id')
   updateXP_Points(
     @Param('id') id: string,
     @Body('xp') added_xp: number,
     @Body('point') added_point: number,
   ) {
-    return this.studentsService.updateXP_Points(+id, added_xp, added_point);
+    return this.studentsService.updateXP_Points(id, added_xp, added_point);
   }
 
   @ApiOperation({
@@ -62,7 +62,6 @@ export class StudentsController {
     return this.studentsService.findAll(+limit, +page);
   }
 
-  
   @ApiOperation({
     summary: 'Get a specific student by userId',
     description: 'Retrieve details of a specific student using their userId',
@@ -71,11 +70,15 @@ export class StudentsController {
     status: 200,
     description: "Successfully retrieved the student's details",
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get('user/:id')
   findOneByUserId(@Param('id') id: string) {
-    return this.studentsService.findOneByUserId(+id);
+    return this.studentsService.findOneByUserId(id);
   }
-
 
   @ApiOperation({
     summary: 'Get a specific student by ID',
@@ -85,9 +88,14 @@ export class StudentsController {
     status: 200,
     description: "Successfully retrieved the student's details",
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.studentsService.findOne(+id);
+    return this.studentsService.findOne(id);
   }
 
   @ApiOperation({
@@ -98,9 +106,14 @@ export class StudentsController {
     status: 200,
     description: 'Successfully updated the student',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
-    return this.studentsService.update(+id, updateStudentDto);
+    return this.studentsService.update(id, updateStudentDto);
   }
 
   @ApiOperation({
@@ -111,8 +124,13 @@ export class StudentsController {
     status: 200,
     description: 'Successfully deleted the student',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.studentsService.remove(+id);
+    return this.studentsService.remove(id);
   }
 }

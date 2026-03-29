@@ -1,30 +1,25 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from "./auth/auth.module"
 import { StaffsModule } from './staffs/staffs.module';
 import { StudentsModule } from './students/students.module';
 import { EventsModule } from './events/events.module';
 import { StudentsEventsModule } from './students_events/students_events.module';
+import { ProductsModule } from './products/products.module';
+import { StudentsProductsModule } from './students-products/students-products.module';
+import { SupportModule } from './support/support.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
-    TypeOrmModule.forRootAsync({
+    MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
-        type: config.get<'postgres'>('DB_CONNECTION'),
-        host: config.get<string>('DB_HOST'),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
-        port: config.get<number>('DB_PORT'),
-        database: config.get<string>('DB_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-        autoLoadEntities: true,
-        logging: false,
+        uri: config.get<string>('MONGODB_URI'),
       }),
     }),
     UsersModule,
@@ -32,7 +27,11 @@ import { StudentsEventsModule } from './students_events/students_events.module';
     StaffsModule,
     StudentsModule,
     EventsModule,
-    StudentsEventsModule
+    StudentsEventsModule,
+    ProductsModule,
+    StudentsProductsModule,
+    SupportModule,
+    NotificationsModule
   ],
   controllers: [],
   providers: [],

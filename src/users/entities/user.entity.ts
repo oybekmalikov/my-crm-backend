@@ -1,109 +1,103 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { HydratedDocument } from 'mongoose';
 import { RolesType } from '../../@types';
-import { Staff } from '../../staffs/entities/staff.entity';
-import { Student } from '../../students/entities/student.entity';
 
-@Entity({ name: 'users' })
+export type UserDocument = HydratedDocument<User>;
+
+@Schema({ timestamps: true, collection: 'users' })
 export class User {
-  @ApiProperty({
-    example: 1,
-    description: 'This is the user ID number.',
-  })
-  @PrimaryGeneratedColumn()
-  id: number;
-
   @ApiProperty({
     example: 'Ali',
     description: "This is the user's first name",
   })
-  @Column()
+  @Prop({ required: true })
   firstName: string;
 
   @ApiProperty({
     example: 'Aliyev',
     description: "This is the user's last name",
   })
-  @Column()
+  @Prop({ required: true })
   lastName: string;
 
   @ApiProperty({
     example: 'Aliyevich',
     description: "This is the user's middle name",
   })
-  @Column()
+  @Prop({ required: true })
   middleName: string;
 
   @ApiProperty({
     example: 'ali-aliyev',
     description: "This user's login name",
   })
-  @Column({ unique: true })
+  @Prop({ unique: true, required: true })
   login: string;
 
   @ApiProperty({
     example: 'example1234',
     description: "This user's password",
   })
-  @Column()
+  @Prop({ required: true })
   password: string;
 
   @ApiProperty({
     example: '+998991234567',
     description: "This user's phone number",
   })
-  @Column({ unique: true })
+  @Prop({ unique: true, required: true })
   phone: string;
 
   @ApiProperty({
     example: 'user',
     description: "This user's role",
   })
-  @Column()
+  @Prop({ required: true })
   role: RolesType;
 
   @ApiProperty({
     example: '/src/something/avatar.jpg',
     description: "This user's avatar path.",
   })
-  @Column({ default: '' })
+  @Prop({ default: '' })
   avatarUrl: string;
 
   @ApiProperty({
     example: true,
     description: "This user's activity",
   })
-  @Column({ default: false })
+  @Prop({ default: false })
   isActive: boolean;
 
   @ApiProperty({
     example: '2023-01-01 12:00:00',
     description: "This user's last activity",
   })
-  @Column({ default: '' })
+  @Prop({ default: '' })
   lastLogin?: string;
 
   @ApiProperty({
     example: 'qwertyu.12345.!@#$%^&*',
     description: "This is the user's token.",
   })
-  @Column({ default: '' })
+  @Prop({ default: '' })
   refreshToken: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @OneToMany(() => Student, (student) => student.user, { onDelete: 'CASCADE' })
-  students: Student[];
-  @OneToMany(() => Staff, (staff) => staff.user, { onDelete: 'CASCADE' })
-  staffs: Staff[];
 }
+
+export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.virtual('students', {
+  ref: 'Student',
+  localField: '_id',
+  foreignField: 'userId',
+});
+
+UserSchema.virtual('staffs', {
+  ref: 'Staff',
+  localField: '_id',
+  foreignField: 'userId',
+});
+
+UserSchema.set('toJSON', { virtuals: true });
+UserSchema.set('toObject', { virtuals: true });

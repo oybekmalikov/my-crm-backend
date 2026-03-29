@@ -1,27 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { StudentsService } from '../students/students.service';
 import { CreateStudentsEventDto } from './dto/create-students_event.dto';
 import { UpdateStudentsEventDto } from './dto/update-students_event.dto';
-import { StudentsEvent } from './entities/students_event.entity';
+import {
+  StudentsEvent,
+  StudentsEventDocument,
+} from './entities/students_event.entity';
 
 @Injectable()
 export class StudentsEventsService {
   constructor(
-    @InjectRepository(StudentsEvent)
-    private studentsEventRepo: Repository<StudentsEvent>,
+    @InjectModel(StudentsEvent.name)
+    private studentsEventModel: Model<StudentsEventDocument>,
     private readonly studentsService: StudentsService,
   ) {}
+
   async create(createStudentsEventDto: CreateStudentsEventDto) {
-    const studentEvent = this.studentsEventRepo.create(createStudentsEventDto);
+    const studentEvent = await this.studentsEventModel.create(
+      createStudentsEventDto,
+    );
     return {
       message: {
         uz: 'Student uchun event muvaffaqiyatli yaratildi',
         ru: 'Событие для студента успешно создано',
         en: 'Event for student created successfully',
       },
-      data: await this.studentsEventRepo.save(studentEvent),
+      data: studentEvent,
       success: true,
     };
   }
@@ -32,21 +38,29 @@ export class StudentsEventsService {
     isAttended?: boolean,
     eventStatus?: string,
   ) {
-    const [data, total] = await this.studentsEventRepo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { id: 'ASC' },
-      relations: ['student', 'event'],
-      where:
-        isAttended && eventStatus
-          ? { isAttended, event: { status: eventStatus } }
-          : eventStatus
-            ? { event: { status: eventStatus } }
-            : isAttended
-              ? { isAttended }
-              : {},
-    });
-    if (data.length === 0) {
+    const skip = (page - 1) * limit;
+    const query: any = {};
+    if (isAttended !== undefined) {
+      query.isAttended = isAttended;
+    }
+
+    const data = await this.studentsEventModel
+      .find(query)
+      .populate('student')
+      .populate('event')
+      .skip(skip)
+      .limit(limit)
+      .sort({ _id: 1 })
+      .exec();
+
+    let finalData = data;
+    if (eventStatus) {
+      finalData = data.filter(
+        (se: any) => se.event && se.event.status === eventStatus,
+      );
+    }
+
+    if (finalData.length === 0) {
       return {
         message: {
           uz: 'Hozircha eventlaringiz mavjud emas',
@@ -63,16 +77,17 @@ export class StudentsEventsService {
         ru: 'Список событий',
         en: 'List of events',
       },
-      data: { studentsEvent: data, total, page, limit },
+      data: { studentsEvent: finalData, total: finalData.length, page, limit },
       success: true,
     };
   }
 
-  async findOne(id: number) {
-    const studentEvent = await this.studentsEventRepo.findOne({
-      relations: ['student', 'event'],
-      where: { id },
-    });
+  async findOne(id: string) {
+    const studentEvent = await this.studentsEventModel
+      .findById(id)
+      .populate('student')
+      .populate('event')
+      .exec();
     if (!studentEvent) {
       throw new NotFoundException({
         uz: 'Event topilmadi',
@@ -91,11 +106,10 @@ export class StudentsEventsService {
     };
   }
 
-  async update(id: number, updateStudentsEventDto: UpdateStudentsEventDto) {
-    const studentEvent = await this.studentsEventRepo.preload({
-      id,
-      ...updateStudentsEventDto,
-    });
+  async update(id: string, updateStudentsEventDto: UpdateStudentsEventDto) {
+    const studentEvent = await this.studentsEventModel
+      .findByIdAndUpdate(id, updateStudentsEventDto, { new: true })
+      .exec();
     if (!studentEvent) {
       throw new NotFoundException({
         uz: 'Event topilmadi',
@@ -109,33 +123,19 @@ export class StudentsEventsService {
         ru: 'Событие успешно обновлено',
         en: 'Event updated successfully',
       },
-      data: await this.studentsEventRepo.save(studentEvent),
+      data: studentEvent,
       success: true,
     };
   }
 
-  async remove(id: number) {
-    const studentEvent = await this.studentsEventRepo.findOne({
-      where: { id },
-    });
-    if (!studentEvent) {
+  async remove(id: string) {
+    const deleted = await this.studentsEventModel.findByIdAndDelete(id).exec();
+    if (!deleted) {
       throw new NotFoundException({
         uz: 'Event topilmadi',
         ru: 'Событие не найдено',
         en: 'Event not found',
       });
-    }
-    const deleted = await this.studentsEventRepo.delete({ id });
-    if (!deleted.affected) {
-      return {
-        message: {
-          uz: 'Event topilmadi',
-          ru: 'Событие не найдено',
-          en: 'Event not found',
-        },
-        data: null,
-        success: false,
-      };
     }
     return {
       message: {
@@ -143,15 +143,17 @@ export class StudentsEventsService {
         ru: 'Событие успешно удалено',
         en: 'Event deleted successfully',
       },
-      data: { affected: deleted.affected },
+      data: { affected: 1 },
       success: true,
     };
   }
-  async setStudentAttended(id: number, isAttended: boolean) {
-    const studentEvent = await this.studentsEventRepo.findOne({
-      where: { id },
-      relations: ['student', 'event'],
-    });
+
+  async setStudentAttended(id: string, isAttended: boolean) {
+    const studentEvent = await this.studentsEventModel
+      .findById(id)
+      .populate('student')
+      .populate('event')
+      .exec();
     if (!studentEvent) {
       throw new NotFoundException({
         uz: 'Event topilmadi',
@@ -160,11 +162,14 @@ export class StudentsEventsService {
       });
     }
     studentEvent.isAttended = isAttended;
-    if (isAttended) {
+    await studentEvent.save();
+
+    const doc: any = studentEvent;
+    if (isAttended && doc.student && doc.event) {
       await this.studentsService.updateXP_Points(
-        studentEvent.student.id,
+        doc.student._id?.toString() || doc.student.id?.toString(),
         0,
-        studentEvent.event.pointForEvent,
+        doc.event.pointForEvent,
       );
     }
     return {
@@ -173,7 +178,7 @@ export class StudentsEventsService {
         ru: 'Событие успешно обновлено',
         en: 'Event updated successfully',
       },
-      data: await this.studentsEventRepo.save(studentEvent),
+      data: studentEvent,
       success: true,
     };
   }

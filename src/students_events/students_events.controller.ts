@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateStudentsEventDto } from './dto/create-students_event.dto';
 import { UpdateStudentsEventDto } from './dto/update-students_event.dto';
 import { StudentsEventsService } from './students_events.service';
@@ -23,7 +23,7 @@ export class StudentsEventsController {
   @ApiResponse({ status: 200, type: Object })
   @Patch('attendence/:id')
   setStudentAttended(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body('isAttended') isAttended: boolean,
   ) {
     return this.studentsEventsService.setStudentAttended(id, isAttended);
@@ -53,9 +53,14 @@ export class StudentsEventsController {
     description: 'Get student event by id',
   })
   @ApiResponse({ status: 200, type: CreateStudentsEventDto })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.studentsEventsService.findOne(+id);
+    return this.studentsEventsService.findOne(id);
   }
 
   @ApiOperation({
@@ -63,12 +68,17 @@ export class StudentsEventsController {
     description: 'Update student event by id',
   })
   @ApiResponse({ status: 200, type: UpdateStudentsEventDto })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch(':id')
   update(
     @Param('id') id: string,
     @Body() updateStudentsEventDto: UpdateStudentsEventDto,
   ) {
-    return this.studentsEventsService.update(+id, updateStudentsEventDto);
+    return this.studentsEventsService.update(id, updateStudentsEventDto);
   }
 
   @ApiOperation({
@@ -76,8 +86,13 @@ export class StudentsEventsController {
     description: 'Delete student event by id',
   })
   @ApiResponse({ status: 200, type: Object })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.studentsEventsService.remove(+id);
+    return this.studentsEventsService.remove(id);
   }
 }

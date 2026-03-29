@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { Request } from 'express';
 import { FileUploadService } from '../common/services/file-upload.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -60,6 +60,7 @@ export class UsersController {
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @Req() req: Request,
+    created,
   ) {
     if (!file) {
       throw new BadRequestException({
@@ -134,9 +135,14 @@ export class UsersController {
     status: 200,
     description: 'The user has been successfully fetched.',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return this.usersService.findOne(id);
   }
 
   @ApiOperation({
@@ -148,9 +154,14 @@ export class UsersController {
     status: 200,
     description: 'The user has been successfully updated.',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @ApiOperation({
@@ -162,8 +173,13 @@ export class UsersController {
     status: 200,
     description: 'The user has been successfully deleted.',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    return this.usersService.remove(id);
   }
 }

@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
@@ -228,18 +227,4 @@ export class CreateUserDto {
       }),
   })
   role?: RolesType;
-
-  @ApiProperty({
-    example: true,
-    description: "This user's active status",
-  })
-  @IsBoolean({
-    message: () =>
-      JSON.stringify({
-        uz: 'Faollik holati mantiqiy (boolean) bo‘lishi kerak!',
-        ru: 'Статус активности должен быть булевым!',
-        en: 'Active must be a boolean!',
-      }),
-  })
-  isActive: boolean;
 }

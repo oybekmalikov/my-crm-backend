@@ -1,35 +1,39 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { STUDENT_POINTS_LEVELS, STUDENT_XP_LEVELS } from '../app.constants';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { Student } from './entities/student.entity';
+import { Student, StudentDocument } from './entities/student.entity';
 
 @Injectable()
 export class StudentsService {
   constructor(
-    @InjectRepository(Student) private studentRepo: Repository<Student>,
+    @InjectModel(Student.name) private studentModel: Model<StudentDocument>,
   ) {}
+
   async create(createStudentDto: CreateStudentDto) {
-    const student = this.studentRepo.create(createStudentDto);
+    const student = await this.studentModel.create(createStudentDto);
     return {
       message: {
         uz: 'Student muvaffaqiyatli yaratildi',
         ru: 'Студент успешно создан',
         en: 'Student created successfully',
       },
-      data: await this.studentRepo.save(student),
+      data: student,
       success: true,
     };
   }
 
   async findAll(limit: number = 10, page: number = 1) {
-    const [data, total] = await this.studentRepo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { id: 'ASC' },
-    });
+    const skip = (page - 1) * limit;
+    const data = await this.studentModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ _id: 1 })
+      .exec();
+    const total = await this.studentModel.countDocuments();
     if (data.length === 0) {
       return {
         message: {
@@ -52,33 +56,11 @@ export class StudentsService {
     };
   }
 
-  async findOne(id: number) {
-    const student = await this.studentRepo.findOne({
-      where: { id },
-      relations: ['user'],
-    });
-    if (!student) {
-      throw new NotFoundException({
-        uz: 'Student topilmadi',
-        ru: 'Студент не найден',
-        en: 'Student not found',
-      });
-    }
-    return {
-      message: {
-        uz: 'Student topildi',
-        ru: 'Студент найден',
-        en: 'Student found',
-      },
-      data: student,
-      success: true,
-    };
-  }
-  async findOneByUserId(userId: number) {
-    const student = await this.studentRepo.findOne({
-      where: { userId },
-      relations: ['user'],
-    });
+  async findOne(id: string) {
+    const student = await this.studentModel
+      .findById(id)
+      .populate('user')
+      .exec();
     if (!student) {
       throw new NotFoundException({
         uz: 'Student topilmadi',
@@ -97,26 +79,39 @@ export class StudentsService {
     };
   }
 
-  async update(id: number, updateStudentDto: UpdateStudentDto) {
-    const student = await this.findOne(id);
-    if (!student.data) {
+  async findOneByUserId(userId: string) {
+    const student = await this.studentModel
+      .findOne({ userId })
+      .populate('user')
+      .exec();
+    if (!student) {
       throw new NotFoundException({
         uz: 'Student topilmadi',
         ru: 'Студент не найден',
         en: 'Student not found',
       });
     }
-    const updated = await this.studentRepo.preload({ id, ...updateStudentDto });
+    return {
+      message: {
+        uz: 'Student topildi',
+        ru: 'Студент найден',
+        en: 'Student found',
+      },
+      data: student,
+      success: true,
+    };
+  }
+
+  async update(id: string, updateStudentDto: UpdateStudentDto) {
+    const updated = await this.studentModel
+      .findByIdAndUpdate(id, updateStudentDto, { new: true })
+      .exec();
     if (!updated) {
-      return {
-        message: {
-          uz: 'Student topilmadi',
-          ru: 'Студент не найден',
-          en: 'Student not found',
-        },
-        data: null,
-        success: false,
-      };
+      throw new NotFoundException({
+        uz: 'Student topilmadi',
+        ru: 'Студент не найден',
+        en: 'Student not found',
+      });
     }
     return {
       message: {
@@ -124,31 +119,19 @@ export class StudentsService {
         ru: 'Студент успешно обновлен',
         en: 'Student updated successfully',
       },
-      data: await this.studentRepo.save(updated),
+      data: updated,
       success: true,
     };
   }
 
-  async remove(id: number) {
-    const student = await this.findOne(id);
-    if (!student) {
+  async remove(id: string) {
+    const deleted = await this.studentModel.findByIdAndDelete(id).exec();
+    if (!deleted) {
       throw new NotFoundException({
         uz: 'Student topilmadi',
         ru: 'Студент не найден',
         en: 'Student not found',
       });
-    }
-    const deleted = await this.studentRepo.delete({ id });
-    if (!deleted.affected) {
-      return {
-        message: {
-          uz: 'Student topilmadi',
-          ru: 'Студент не найден',
-          en: 'Student not found',
-        },
-        data: null,
-        success: false,
-      };
     }
     return {
       message: {
@@ -156,48 +139,58 @@ export class StudentsService {
         ru: 'Студент успешно удален',
         en: 'Student deleted successfully',
       },
-      data: { affected: deleted.affected },
+      data: { affected: 1 },
       success: true,
     };
   }
 
   async updateXP_Points(
-    id: number,
+    id: string,
     added_xp: number = 0,
     added_point: number = 0,
   ) {
-    const student = await this.findOne(id);
-    const { level, xp, point } = student.data;
+    const student = await this.studentModel.findById(id).exec();
+    if (!student) {
+      throw new NotFoundException({
+        uz: 'Student topilmadi',
+        ru: 'Студент не найден',
+        en: 'Student not found',
+      });
+    }
+    const { level, xp, point } = student;
     if (STUDENT_XP_LEVELS[level] > xp + added_xp) {
       if (added_point === 0) {
-        await this.studentRepo.update(
-          { id },
-          {
+        await this.studentModel
+          .findByIdAndUpdate(id, {
             level: level + 1,
             xp: xp + added_xp,
             point: STUDENT_POINTS_LEVELS[level] * xp,
-          },
-        );
+          })
+          .exec();
       } else {
-        await this.studentRepo.update(
-          { id },
-          { level: level + 1, xp: xp + added_xp, point: point + added_point },
-        );
+        await this.studentModel
+          .findByIdAndUpdate(id, {
+            level: level + 1,
+            xp: xp + added_xp,
+            point: point + added_point,
+          })
+          .exec();
       }
     } else {
       if (added_point === 0) {
-        await this.studentRepo.update(
-          { id },
-          {
+        await this.studentModel
+          .findByIdAndUpdate(id, {
             xp: xp + added_xp,
             point: STUDENT_POINTS_LEVELS[level] * xp,
-          },
-        );
+          })
+          .exec();
       } else {
-        await this.studentRepo.update(
-          { id },
-          { xp: xp + added_xp, point: point + added_point },
-        );
+        await this.studentModel
+          .findByIdAndUpdate(id, {
+            xp: xp + added_xp,
+            point: point + added_point,
+          })
+          .exec();
       }
     }
     return {
@@ -206,7 +199,7 @@ export class StudentsService {
         ru: 'XP и очки студента успешно обновлены',
         en: 'Student XP and points updated successfully',
       },
-      data: (await this.findOne(id)).data,
+      data: await this.studentModel.findById(id).exec(),
       success: true,
     };
   }

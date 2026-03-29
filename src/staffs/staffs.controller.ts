@@ -8,7 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { StaffsService } from './staffs.service';
@@ -22,9 +22,14 @@ export class StaffsController {
     status: 200,
     description: 'Successfully updated staffs salary',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch('salary/:id')
-  updateSalary(@Param('id') id: string, @Body("newSalary") newSalary: number) {
-    return this.staffService.updateStaffsSalary(+id, newSalary);
+  updateSalary(@Param('id') id: string, @Body('newSalary') newSalary: number) {
+    return this.staffService.updateStaffsSalary(id, newSalary);
   }
 
   @ApiOperation({ summary: 'Update staffs position' })
@@ -32,9 +37,17 @@ export class StaffsController {
     status: 200,
     description: 'Successfully updated staffs position',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch('position/:id')
-  updatePosition(@Param('id') id: string, @Body("newPosition") newPosition: string) {
-    return this.staffService.updateStaffsPosition(+id, newPosition);
+  updatePosition(
+    @Param('id') id: string,
+    @Body('newPosition') newPosition: string,
+  ) {
+    return this.staffService.updateStaffsPosition(id, newPosition);
   }
 
   @ApiOperation({ summary: 'Set staffs salary to paid' })
@@ -42,9 +55,14 @@ export class StaffsController {
     status: 200,
     description: 'Successfully set staffs salary to paid',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch('salary/paid/:id')
   setSalaryToPaid(@Param('id') id: string) {
-    return this.staffService.setStaffsSalaryToPaid(+id);
+    return this.staffService.setStaffsSalaryToPaid(id);
   }
 
   @ApiOperation({
@@ -83,9 +101,14 @@ export class StaffsController {
     status: 200,
     description: "Successfully retrieved the staff's details",
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get('user/:id')
   findOneByUserId(@Param('id') id: string) {
-    return this.staffService.findOneByUserId(+id);
+    return this.staffService.findOneByUserId(id);
   }
 
   @ApiOperation({
@@ -96,9 +119,14 @@ export class StaffsController {
     status: 200,
     description: "Successfully retrieved the staff's details",
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.staffService.findOne(+id);
+    return this.staffService.findOne(id);
   }
 
   @ApiOperation({
@@ -109,9 +137,14 @@ export class StaffsController {
     status: 200,
     description: 'Successfully updated the staff',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatestaffDto: UpdateStaffDto) {
-    return this.staffService.update(+id, updatestaffDto);
+    return this.staffService.update(id, updatestaffDto);
   }
 
   @ApiOperation({
@@ -122,8 +155,13 @@ export class StaffsController {
     status: 200,
     description: 'Successfully deleted the staff',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.staffService.remove(+id);
+    return this.staffService.remove(id);
   }
 }

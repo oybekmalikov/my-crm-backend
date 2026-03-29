@@ -1,32 +1,39 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
-import { Staff } from './entities/staff.entity';
+import { Staff, StaffDocument } from './entities/staff.entity';
 
 @Injectable()
 export class StaffsService {
-  constructor(@InjectRepository(Staff) private staffRepo: Repository<Staff>) {}
+  constructor(
+    @InjectModel(Staff.name) private staffModel: Model<StaffDocument>,
+  ) {}
+
   async create(createStaffDto: CreateStaffDto) {
-    const staff = this.staffRepo.create(createStaffDto);
+    const staff = await this.staffModel.create(createStaffDto);
     return {
       message: {
         uz: 'Ishchi muvaffaqiyatli yaratildi',
         ru: 'Сотрудник успешно создан',
         en: 'Staff created successfully',
       },
-      data: await this.staffRepo.save(staff),
+      data: staff,
       success: true,
     };
   }
 
   async findAll(limit: number = 10, page: number = 1) {
-    const [data, total] = await this.staffRepo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { id: 'ASC' },
-    });
+    const skip = (page - 1) * limit;
+    const data = await this.staffModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ _id: 1 })
+      .exec();
+    const total = await this.staffModel.countDocuments();
+
     if (data.length === 0) {
       return {
         message: {
@@ -49,11 +56,8 @@ export class StaffsService {
     };
   }
 
-  async findOne(id: number) {
-    const staffs = await this.staffRepo.findOne({
-      where: { id },
-      relations: ['user'],
-    });
+  async findOne(id: string) {
+    const staffs = await this.staffModel.findById(id).populate('user').exec();
     if (!staffs) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
@@ -71,11 +75,12 @@ export class StaffsService {
       success: true,
     };
   }
-  async findOneByUserId(userId: number) {
-    const staff = await this.staffRepo.findOne({
-      where: { userId },
-      relations: ['user'],
-    });
+
+  async findOneByUserId(userId: string) {
+    const staff = await this.staffModel
+      .findOne({ userId })
+      .populate('user')
+      .exec();
     if (!staff) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
@@ -94,26 +99,16 @@ export class StaffsService {
     };
   }
 
-  async update(id: number, updateStaffDto: UpdateStaffDto) {
-    const staff = await this.findOne(id);
-    if (!staff.data) {
+  async update(id: string, updateStaffDto: UpdateStaffDto) {
+    const updated = await this.staffModel
+      .findByIdAndUpdate(id, updateStaffDto, { new: true })
+      .exec();
+    if (!updated) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
         ru: 'Сотрудник не найден',
         en: 'Staff not found',
       });
-    }
-    const updated = await this.staffRepo.preload({ id, ...updateStaffDto });
-    if (!updated) {
-      return {
-        message: {
-          uz: 'Ishchi topilmadi',
-          ru: 'Сотрудник не найден',
-          en: 'Staff not found',
-        },
-        data: null,
-        success: false,
-      };
     }
     return {
       message: {
@@ -121,31 +116,19 @@ export class StaffsService {
         ru: 'Сотрудник успешно обновлен',
         en: 'Staff updated successfully',
       },
-      data: await this.staffRepo.save(updated),
+      data: updated,
       success: true,
     };
   }
 
-  async remove(id: number) {
-    const staff = await this.findOne(id);
-    if (!staff) {
+  async remove(id: string) {
+    const deleted = await this.staffModel.findByIdAndDelete(id).exec();
+    if (!deleted) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
         ru: 'Сотрудник не найден',
         en: 'Staff not found',
       });
-    }
-    const deleted = await this.staffRepo.delete({ id });
-    if (!deleted.affected) {
-      return {
-        message: {
-          uz: 'Ishchi topilmadi',
-          ru: 'Сотрудник не найден',
-          en: 'Staff not found',
-        },
-        data: null,
-        success: false,
-      };
     }
     return {
       message: {
@@ -153,13 +136,15 @@ export class StaffsService {
         ru: 'Сотрудник успешно удален',
         en: 'Staff deleted successfully',
       },
-      data: { affected: deleted.affected },
+      data: { affected: 1 },
       success: true,
     };
   }
 
-  async updateStaffsSalary(userId: number, salary: number) {
-    const staff = await this.staffRepo.findOne({ where: { id: userId } });
+  async updateStaffsSalary(userId: string, salary: number) {
+    const staff = await this.staffModel
+      .findByIdAndUpdate(userId, { salary }, { new: true })
+      .exec();
     if (!staff) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
@@ -167,20 +152,25 @@ export class StaffsService {
         en: 'Staff not found',
       });
     }
-    staff.salary = salary;
     return {
       message: {
         uz: 'Ishchi maoshi muvaffaqiyatli yangilandi',
         ru: 'Зарплата сотрудника успешно обновлена',
         en: 'Staff salary updated successfully',
       },
-      data: await this.staffRepo.save(staff),
+      data: staff,
       success: true,
     };
   }
 
-  async setStaffsSalaryToPaid(userId: number) {
-    const staff = await this.staffRepo.findOne({ where: { id: userId } });
+  async setStaffsSalaryToPaid(userId: string) {
+    const staff = await this.staffModel
+      .findByIdAndUpdate(
+        userId,
+        { salary_paid_for_last_month: true },
+        { new: true },
+      )
+      .exec();
     if (!staff) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
@@ -188,20 +178,21 @@ export class StaffsService {
         en: 'Staff not found',
       });
     }
-    staff.salary_paid_for_last_month = true;
     return {
       message: {
         uz: 'Ishchi maoshi to‘landi deb belgilandi',
         ru: 'Зарплата сотрудника отмечена как выплаченная',
         en: 'Staff salary marked as paid',
       },
-      data: await this.staffRepo.save(staff),
+      data: staff,
       success: true,
     };
   }
 
-  async updateStaffsPosition(userId: number, position: string) {
-    const staff = await this.staffRepo.findOne({ where: { id: userId } });
+  async updateStaffsPosition(userId: string, position: string) {
+    const staff = await this.staffModel
+      .findByIdAndUpdate(userId, { position }, { new: true })
+      .exec();
     if (!staff) {
       throw new NotFoundException({
         uz: 'Ishchi topilmadi',
@@ -209,14 +200,13 @@ export class StaffsService {
         en: 'Staff not found',
       });
     }
-    staff.position = position;
     return {
       message: {
         uz: 'Ishchi lavozimi muvaffaqiyatli yangilandi',
         ru: 'Должность сотрудника успешно обновлена',
         en: 'Staff position updated successfully',
       },
-      data: await this.staffRepo.save(staff),
+      data: staff,
       success: true,
     };
   }

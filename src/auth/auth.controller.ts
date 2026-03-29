@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CookieGetter } from '../common/decorators/cookie-getter.decorator';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -62,11 +62,16 @@ export class AuthController {
     status: 200,
     description: 'User refreshed successfully!',
   })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @UseGuards(AuthGuard)
   @HttpCode(200)
   @Post('refresh/:id')
   refreshTokenUser(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @CookieGetter('refresh_token') refreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -95,7 +100,7 @@ export class AuthController {
       oldPassword,
       newPassword,
       confirmPassword,
-      user.id,
+      user.userId,
     );
   }
 }

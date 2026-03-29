@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventsService } from './events.service';
@@ -16,15 +16,28 @@ import { EventsService } from './events.service';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
+  @ApiOperation({
+    summary: 'Update event params',
+    description: 'Update event params',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Event params updated successfully',
+  })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch('params/:id')
   updateEventParams(
     @Param('id') id: string,
-    @Body("newStatus") newStatus?: string,
-    @Body("newDate") newDate?: string,
-    @Body("newTime") newTime?: string,
+    @Body('newStatus') newStatus?: string,
+    @Body('newDate') newDate?: string,
+    @Body('newTime') newTime?: string,
   ) {
     return this.eventsService.updateEventParams(
-      +id,
+      id,
       newStatus,
       newDate,
       newTime,
@@ -55,9 +68,14 @@ export class EventsController {
     description: 'Get event',
   })
   @ApiResponse({ status: 200, description: 'Event' })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(+id);
+    return this.eventsService.findOne(id);
   }
 
   @ApiOperation({
@@ -65,9 +83,14 @@ export class EventsController {
     description: 'Update event',
   })
   @ApiResponse({ status: 200, description: 'Event updated successfully' })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventsService.update(+id, updateEventDto);
+    return this.eventsService.update(id, updateEventDto);
   }
 
   @ApiOperation({
@@ -75,8 +98,13 @@ export class EventsController {
     description: 'Delete event',
   })
   @ApiResponse({ status: 200, description: 'Event deleted successfully' })
+  @ApiParam({
+    name: 'id',
+    type: 'number',
+    required: true,
+  })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.eventsService.remove(+id);
+    return this.eventsService.remove(id);
   }
 }

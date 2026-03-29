@@ -1,34 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Event } from './entities/event.entity';
+import { Event, EventDocument } from './entities/event.entity';
 
 @Injectable()
 export class EventsService {
-  constructor(@InjectRepository(Event) private eventRepo: Repository<Event>) {}
+  constructor(
+    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+  ) {}
+
   async create(createEventDto: CreateEventDto) {
-    const event = this.eventRepo.create(createEventDto);
+    const event = await this.eventModel.create(createEventDto);
     return {
       message: {
         uz: 'Tadbir muvaffaqiyatli qo`shildi',
         ru: 'Событие успешно добавлено',
         en: 'Event added successfully',
       },
-      data: await this.eventRepo.save(event),
+      data: event,
       success: true,
     };
   }
 
   async findAll(limit: number = 10, page: number = 1, status?: string) {
-    const [data, total] = await this.eventRepo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { id: 'ASC' },
-      relations: [],
-      where: status ? { status } : {},
-    });
+    const skip = (page - 1) * limit;
+    const query = status ? { status } : {};
+    const data = await this.eventModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ _id: 1 })
+      .exec();
+    const total = await this.eventModel.countDocuments(query);
+
     if (data.length === 0) {
       return {
         message: {
@@ -51,11 +57,11 @@ export class EventsService {
     };
   }
 
-  async findOne(id: number) {
-    const event = await this.eventRepo.findOne({
-      where: { id },
-      relations: ['students'],
-    });
+  async findOne(id: string) {
+    const event = await this.eventModel
+      .findById(id)
+      .populate('students')
+      .exec();
     if (!event) {
       throw new NotFoundException({
         uz: 'Tadbir topilmadi',
@@ -74,8 +80,10 @@ export class EventsService {
     };
   }
 
-  async update(id: number, updateEventDto: UpdateEventDto) {
-    const event = await this.eventRepo.preload({ id, ...updateEventDto });
+  async update(id: string, updateEventDto: UpdateEventDto) {
+    const event = await this.eventModel
+      .findByIdAndUpdate(id, updateEventDto, { new: true })
+      .exec();
     if (!event) {
       throw new NotFoundException({
         uz: 'Tadbir topilmadi',
@@ -89,31 +97,19 @@ export class EventsService {
         ru: 'Событие успешно обновлено',
         en: 'Event updated successfully',
       },
-      data: await this.eventRepo.save(event),
+      data: event,
       success: true,
     };
   }
 
-  async remove(id: number) {
-    const event = await this.eventRepo.findOne({ where: { id } });
-    if (!event) {
+  async remove(id: string) {
+    const deleted = await this.eventModel.findByIdAndDelete(id).exec();
+    if (!deleted) {
       throw new NotFoundException({
         uz: 'Tadbir topilmadi',
         ru: 'Событие не найдено',
         en: 'Event not found',
       });
-    }
-    const deleted = await this.eventRepo.delete({ id });
-    if (!deleted.affected) {
-      return {
-        message: {
-          uz: 'Tadbir topilmadi',
-          ru: 'Событие не найдено',
-          en: 'Event not found',
-        },
-        data: null,
-        success: false,
-      };
     }
     return {
       message: {
@@ -121,17 +117,18 @@ export class EventsService {
         ru: 'Событие успешно удалено',
         en: 'Event deleted successfully',
       },
-      data: { affected: deleted.affected },
+      data: { affected: 1 },
       success: true,
     };
   }
+
   async updateEventParams(
-    eventId: number,
+    eventId: string,
     newStatus?: string,
     newDate?: string,
     newTime?: string,
   ) {
-    const event = await this.eventRepo.findOne({ where: { id: eventId } });
+    const event = await this.eventModel.findById(eventId).exec();
     if (!event) {
       throw new NotFoundException({
         uz: 'Tadbir topilmadi',
@@ -142,13 +139,16 @@ export class EventsService {
     if (newStatus) event.status = newStatus;
     if (newDate) event.date = newDate;
     if (newTime) event.time = newTime;
+
+    await event.save();
+
     return {
       message: {
         uz: 'Tadbir muvaffaqiyatli yangilandi',
         ru: 'Событие успешно обновлено',
         en: 'Event updated successfully',
       },
-      data: await this.eventRepo.save(event),
+      data: event,
       success: true,
     };
   }

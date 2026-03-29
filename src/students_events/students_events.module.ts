@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { StudentsModule } from '../students/students.module';
-import { StudentsEvent } from './entities/students_event.entity';
+import {
+  StudentsEvent,
+  StudentsEventSchema,
+} from './entities/students_event.entity';
 import { StudentsEventsController } from './students_events.controller';
 import { StudentsEventsService } from './students_events.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([StudentsEvent]), StudentsModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: StudentsEvent.name, schema: StudentsEventSchema },
+    ]),
+    StudentsModule,
+  ],
   controllers: [StudentsEventsController],
   providers: [StudentsEventsService],
 })

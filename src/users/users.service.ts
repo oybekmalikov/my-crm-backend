@@ -3,24 +3,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { Model } from 'mongoose';
 import { FileUploadService } from '../common/services/file-upload.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { User, UserDocument } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly fileUploadService: FileUploadService,
   ) {}
+
   async create(createUserDto: CreateUserDto) {
-    const existsUserWithLogin = await this.userRepo.findOne({
-      where: { login: createUserDto.login },
-    });
+    const existsUserWithLogin = await this.userModel
+      .findOne({ login: createUserDto.login })
+      .exec();
     if (existsUserWithLogin) {
       throw new ConflictException({
         uz: 'Bunday login mavjud',
@@ -28,9 +29,9 @@ export class UsersService {
         en: 'User with this login already exists',
       });
     }
-    const existsUserWithPhone = await this.userRepo.findOne({
-      where: { phone: createUserDto.phone },
-    });
+    const existsUserWithPhone = await this.userModel
+      .findOne({ phone: createUserDto.phone })
+      .exec();
     if (existsUserWithPhone) {
       throw new ConflictException({
         uz: 'Bunday telefon raqam mavjud',
@@ -39,7 +40,7 @@ export class UsersService {
       });
     }
     const hashedPassword = await bcrypt.hash(createUserDto.password, 7);
-    const user = this.userRepo.create({
+    const user = await this.userModel.create({
       ...createUserDto,
       password: hashedPassword,
     });
@@ -49,17 +50,20 @@ export class UsersService {
         ru: 'Пользователь успешно создан',
         en: 'User created successfully',
       },
-      data: await this.userRepo.save(user),
+      data: user,
       success: true,
     };
   }
 
   async findAll(limit: number = 10, page: number = 1) {
-    const [data, total] = await this.userRepo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { id: 'ASC' },
-    });
+    const skip = (page - 1) * limit;
+    const data = await this.userModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ _id: 1 })
+      .exec();
+    const total = await this.userModel.countDocuments();
     if (data.length === 0) {
       return {
         message: {
@@ -82,11 +86,12 @@ export class UsersService {
     };
   }
 
-  async findOne(id: number) {
-    const user = await this.userRepo.findOne({
-      where: { id },
-      relations: ['students', 'staffs'],
-    });
+  async findOne(id: string) {
+    const user = await this.userModel
+      .findById(id)
+      .populate('students')
+      .populate('staffs')
+      .exec();
     if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
@@ -105,9 +110,9 @@ export class UsersService {
     };
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id);
-    if (!user.data) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userModel.findById(id).exec();
+    if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
         ru: 'Пользователь не найден',
@@ -136,49 +141,28 @@ export class UsersService {
         success: false,
       };
     }
-    const updated = await this.userRepo.preload({ id, ...updateUserDto });
-    if (!updated) {
-      return {
-        message: {
-          uz: 'Foydalanuvchi topilmadi',
-          ru: 'Пользователь не найден',
-          en: 'User not found',
-        },
-        data: null,
-        success: false,
-      };
-    }
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .exec();
     return {
       message: {
         uz: 'Foydalanuvchi muvaffaqiyatli yangilandi',
         ru: 'Пользователь успешно обновлен',
         en: 'User updated successfully',
       },
-      data: await this.userRepo.save(updated),
+      data: updated,
       success: true,
     };
   }
 
-  async remove(id: number) {
-    const user = await this.findOne(id);
-    if (!user) {
+  async remove(id: string) {
+    const deleted = await this.userModel.findByIdAndDelete(id).exec();
+    if (!deleted) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
         ru: 'Пользователь не найден',
         en: 'User not found',
       });
-    }
-    const deleted = await this.userRepo.delete({ id });
-    if (!deleted.affected) {
-      return {
-        message: {
-          uz: 'Foydalanuvchi topilmadi',
-          ru: 'Пользователь не найден',
-          en: 'User not found',
-        },
-        data: null,
-        success: false,
-      };
     }
     return {
       message: {
@@ -186,26 +170,29 @@ export class UsersService {
         ru: 'Пользователь успешно удален',
         en: 'User deleted successfully',
       },
-      data: { affected: deleted.affected },
+      data: { affected: 1 },
       success: true,
     };
   }
+
   async findUserByLogin(login: string) {
-    return this.userRepo.findOne({ where: { login } });
+    return this.userModel.findOne({ login }).exec();
   }
-  async updateRefreshToken(id: number, refreshToken: string) {
-    const user = await this.findOne(id);
-    if (!user.data) {
+
+  async updateRefreshToken(id: string, refreshToken: string) {
+    const user = await this.userModel.findByIdAndUpdate(id, { refreshToken }, { new: true }).exec();
+    if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
         ru: 'Пользователь не найден',
         en: 'User not found',
       });
     }
-    return this.userRepo.update(id, { refreshToken });
+    return user;
   }
-  async updatePassword(id: number, password: string) {
-    const user = await this.findOne(id);
+
+  async updatePassword(id: string, password: string) {
+    const user = await this.userModel.findById(id).exec();
     if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
@@ -214,7 +201,7 @@ export class UsersService {
       });
     }
     const hashedPassword = await bcrypt.hash(password, 7);
-    await this.userRepo.update({ id }, { password: hashedPassword });
+    await this.userModel.findByIdAndUpdate(id, { password: hashedPassword }).exec();
     return {
       message: {
         uz: 'Parol muvaffaqiyatli yangilandi!',
@@ -224,11 +211,12 @@ export class UsersService {
       success: true,
     };
   }
-  async userProfile(id: number) {
-    const user = await this.userRepo.findOne({
-      where: { id },
-      relations: ['students'],
-    });
+
+  async userProfile(id: string) {
+    const user = await this.userModel
+      .findById(id)
+      .populate('students')
+      .exec();
     if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
@@ -246,26 +234,26 @@ export class UsersService {
       success: true,
     };
   }
-  async uploadUserAvatar(id: number, file: Express.Multer.File) {
-    const user = await this.findOne(id);
-    if (!user?.data) {
+
+  async uploadUserAvatar(id: string, file: Express.Multer.File) {
+    const user = await this.userModel.findById(id).exec();
+    if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
         ru: 'Пользователь не найден',
         en: 'User not found',
       });
     }
-    if (user.data.avatarUrl) {
-      const oldFilename = user.data.avatarUrl.split('/').pop();
+    if (user.avatarUrl) {
+      const oldFilename = user.avatarUrl.split('/').pop();
       if (oldFilename) {
         await this.fileUploadService.deleteFile(oldFilename);
       }
     }
     const avatarUrl = this.fileUploadService.getFileUrl(file.filename);
-    await this.userRepo.update(
-      { id },
-      { avatarUrl: `${process.env.API_HOST}${avatarUrl}` },
-    );
+    await this.userModel.findByIdAndUpdate(id, {
+      avatarUrl: `${process.env.API_HOST}${avatarUrl}`,
+    }).exec();
     return {
       message: {
         uz: 'Foydalanuvchi avatari muvaffaqiyatli yuklandi',
@@ -277,21 +265,21 @@ export class UsersService {
     };
   }
 
-  async deleteUserAvatar(id: number) {
-    const user = await this.findOne(id);
-    if (!user?.data) {
+  async deleteUserAvatar(id: string) {
+    const user = await this.userModel.findById(id).exec();
+    if (!user) {
       throw new NotFoundException({
         uz: 'Foydalanuvchi topilmadi',
         ru: 'Пользователь не найден',
         en: 'User not found',
       });
     }
-    if (user.data.avatarUrl) {
-      const filename = user.data.avatarUrl.split('/').pop();
+    if (user.avatarUrl) {
+      const filename = user.avatarUrl.split('/').pop();
       if (filename) {
         await this.fileUploadService.deleteFile(filename);
       }
-      await this.userRepo.update({ id }, { avatarUrl: '' });
+      await this.userModel.findByIdAndUpdate(id, { avatarUrl: '' }).exec();
     }
     return {
       message: {

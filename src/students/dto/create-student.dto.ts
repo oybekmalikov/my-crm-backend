@@ -11,20 +11,17 @@ import {
 
 export class CreateStudentDto {
   @ApiProperty({
-    example: 1,
-    description: 'This is the students userId number.',
+    example: '60c72b2f9b1d8b001c8e4b5a',
+    description: 'This is the students userId string.',
   })
-  @IsNumber(
-    {},
-    {
-      message: () =>
-        JSON.stringify({
-          uz: 'userId son bo‘lishi kerak!',
-          ru: 'userId должен быть числом!',
-          en: 'userId must be a number!',
-        }),
-    },
-  )
+  @IsString({
+    message: () =>
+      JSON.stringify({
+        uz: 'userId matn bo‘lishi kerak!',
+        ru: 'userId должен быть строкой!',
+        en: 'userId must be a string!',
+      }),
+  })
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
@@ -33,7 +30,7 @@ export class CreateStudentDto {
         en: 'userId is required!',
       }),
   })
-  userId: number;
+  userId: string;
 
   @ApiProperty({
     example: '2005-05-15',

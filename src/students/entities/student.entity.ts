@@ -1,94 +1,77 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { StudentsEvent } from '../../students_events/entities/students_event.entity';
-import { User } from '../../users/entities/user.entity';
+import { Types, HydratedDocument } from 'mongoose';
 
-@Entity({ name: 'students' })
+export type StudentDocument = HydratedDocument<Student>;
+
+@Schema({ timestamps: true, collection: 'students' })
 export class Student {
   @ApiProperty({
-    example: 1,
-    description: 'This is the user ID number.',
-  })
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @ApiProperty({
-    example: 1,
+    example: '60d...',
     description: 'This is the students userId number.',
   })
-  @Column()
-  userId: number;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 
   @ApiProperty({
     example: '2005-05-15',
     description: 'This is the students date of birth',
   })
-  @Column()
+  @Prop({ required: true })
   dateOfBirth: string;
 
   @ApiProperty({
     example: 'male',
     description: 'This is the students gender type',
   })
-  @Column()
+  @Prop({ required: true })
   gender: string;
 
   @ApiProperty({
     example: 'Manhattan st-10, New York',
     description: 'This students full address',
   })
-  @Column()
+  @Prop({ required: true })
   address: string;
 
-  @ApiProperty({
-    example: true,
-    description: 'This students activity',
-  })
-  @Column({ default: false })
+  @ApiProperty({ example: true, description: 'This students activity' })
+  @Prop({ default: false })
   isActive: boolean;
 
-  @ApiProperty({
-    example: 568,
-    description: 'This students xp value',
-  })
-  @Column({ default: 0 })
+  @ApiProperty({ example: 568, description: 'This students xp value' })
+  @Prop({ default: 0 })
   xp: number;
 
-  @ApiProperty({
-    example: 10256,
-    description: 'This students point value',
-  })
-  @Column({ default: 0 })
+  @ApiProperty({ example: 10256, description: 'This students point value' })
+  @Prop({ default: 0 })
   point: number;
 
   @ApiProperty({
     example: 56,
     description: 'This students avarage mark: interval 0-100',
   })
-  @Column({ default: 0 })
+  @Prop({ default: 0 })
   avarageMark: number;
 
-  @ApiProperty({
-    example: 5,
-    description: 'This students study level',
-  })
-  @Column({ default: 1 })
+  @ApiProperty({ example: 5, description: 'This students study level' })
+  @Prop({ default: 1 })
   level: number;
-
-  @CreateDateColumn()
-  createdAt: Date;
-  @UpdateDateColumn()
-  updatedAt: Date;
-  @ManyToOne(() => User, (user) => user.students)
-  user: User;
-  @OneToMany(() => StudentsEvent, (event) => event.student)
-  events: StudentsEvent[];
 }
+
+export const StudentSchema = SchemaFactory.createForClass(Student);
+
+StudentSchema.virtual('user', {
+  ref: 'User',
+  localField: 'userId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+StudentSchema.virtual('events', {
+  ref: 'StudentsEvent',
+  localField: '_id',
+  foreignField: 'studentId',
+});
+
+StudentSchema.set('toJSON', { virtuals: true });
+StudentSchema.set('toObject', { virtuals: true });

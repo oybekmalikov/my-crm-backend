@@ -18,9 +18,9 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async generateTokens(user: User) {
+  async generateTokens(user: User | any) {
     const payload = {
-      userId: user.id,
+      userId: user._id || user.id,
       login: user.login,
       role: user.role,
       // studentId: user.students[0]?.id,
@@ -74,14 +74,14 @@ export class AuthService {
       httpOnly: true,
       maxAge: Number(process.env.COOKIE_TIME),
     });
-    await this.usersService.updateRefreshToken(user.id, refreshToken);
+    await this.usersService.updateRefreshToken((user as any)._id.toString(), refreshToken);
     return {
       message: {
         uz: 'Siz muvaffaqiyatli tizimga kirdingiz.',
         ru: 'Вы успешно вошли в систему.',
         en: 'You have successfully logged in.',
       },
-      data: { accessToken, userId: user.id, role: user.role },
+      data: { accessToken, userId: (user as any)._id.toString(), role: user.role },
       success: true,
     };
   }
@@ -104,7 +104,7 @@ export class AuthService {
         en: 'User not found',
       });
     }
-    await this.usersService.updateRefreshToken(user.id, '');
+    await this.usersService.updateRefreshToken((user as any)._id.toString(), '');
     res.clearCookie('refresh_token');
     return {
       message: {
@@ -117,7 +117,7 @@ export class AuthService {
     };
   }
 
-  async refreshTokenUser(userId: number, refresh_token: string, res: Response) {
+  async refreshTokenUser(userId: string, refresh_token: string, res: Response) {
     const decodedToken = await this.jwtService.decode(refresh_token);
     if (userId !== decodedToken['userId']) {
       throw new ForbiddenException({
@@ -134,8 +134,8 @@ export class AuthService {
         en: 'User not found',
       });
     }
-    const { accessToken, refreshToken } = await this.generateTokens(user.data!);
-    await this.usersService.updateRefreshToken(user.data!.id, refreshToken);
+    const { accessToken, refreshToken } = await this.generateTokens(user.data! as any);
+    await this.usersService.updateRefreshToken((user.data! as any)._id.toString(), refreshToken);
     res.cookie('refresh_token', refreshToken, {
       maxAge: Number(process.env.COOKIE_TIME),
       httpOnly: true,
@@ -146,7 +146,7 @@ export class AuthService {
         ru: 'Создан новый токен.',
         en: 'New token created.',
       },
-      data: { userId: user.data!.id, accessToken },
+      data: { userId: (user.data! as any)._id.toString(), accessToken },
       success: true,
     };
   }
@@ -154,7 +154,7 @@ export class AuthService {
     oldPassword: string,
     newPassword: string,
     confirmPassword: string,
-    userId: number,
+    userId: string,
   ) {
     const user = await this.usersService.findOne(userId);
     if (!user) {

@@ -1,48 +1,48 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Student } from '../../students/entities/student.entity';
-import { Event } from "../../events/entities/event.entity"
-@Entity({ name: 'students_events' })
+import { Types, HydratedDocument } from 'mongoose';
+
+export type StudentsEventDocument = HydratedDocument<StudentsEvent>;
+
+@Schema({ timestamps: true, collection: 'students_events' })
 export class StudentsEvent {
   @ApiProperty({
-    example: 1,
-    description: 'This is the user ID number.',
-  })
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @ApiProperty({
-    example: 1,
+    example: '60d...',
     description: "This is the student's ID number",
   })
-  @Column()
-  studentId: number;
+  @Prop({ type: Types.ObjectId, ref: 'Student', required: true })
+  studentId: Types.ObjectId;
 
   @ApiProperty({
-    example: 1,
+    example: '60d...',
     description: "This is the event's ID number",
   })
-  @Column()
-  eventId: number;
+  @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
+  eventId: Types.ObjectId;
 
   @ApiProperty({
     example: true,
     description: "This is the student's attendance status",
   })
-  @Column({ default: false })
+  @Prop({ default: false })
   isAttended: boolean;
-
-  @CreateDateColumn()
-  createdAt: boolean;
-
-  @ManyToOne(() => Student, (st) => st.events)
-  student: Student;
-  @ManyToOne(() => Event, (ev) => ev.students)
-  event: Event;
 }
+
+export const StudentsEventSchema = SchemaFactory.createForClass(StudentsEvent);
+
+StudentsEventSchema.virtual('student', {
+  ref: 'Student',
+  localField: 'studentId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+StudentsEventSchema.virtual('event', {
+  ref: 'Event',
+  localField: 'eventId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+StudentsEventSchema.set('toJSON', { virtuals: true });
+StudentsEventSchema.set('toObject', { virtuals: true });
