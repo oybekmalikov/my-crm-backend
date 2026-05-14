@@ -9,18 +9,11 @@ export class SignInDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Login kiritilishi shart!',
-        ru: 'Логин обязателен!',
-        en: 'Login is required!',
+        message: 'LOGIN_REQUIRED',
       }),
   })
   @IsString({
-    message: () =>
-      JSON.stringify({
-        uz: 'Login matn bo‘lishi kerak!',
-        ru: 'Логин должен быть строкой!',
-        en: 'Login must be a string!',
-      }),
+    message: () => JSON.stringify({ message: 'LOGIN_MUST_TEXT' }),
   })
   readonly login: string;
 
@@ -29,12 +22,7 @@ export class SignInDto {
     description: "This user's password",
   })
   @IsNotEmpty({
-    message: () =>
-      JSON.stringify({
-        uz: 'Parol kiritilishi shart!',
-        ru: 'Пароль обязателен!',
-        en: 'Password is required!',
-      }),
+    message: () => JSON.stringify({ message: 'PASSWORD_REQUIRED' }),
   })
   @IsStrongPassword({
     minLength: 8,

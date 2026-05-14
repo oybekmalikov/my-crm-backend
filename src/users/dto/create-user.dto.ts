@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
@@ -16,33 +17,25 @@ export class CreateUserDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Ism kiritilishi shart!',
-        ru: 'Имя обязательно!',
-        en: 'First name is required!',
+        message: 'USER.FIRST_NAME_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Ism matn bo‘lishi kerak!',
-        ru: 'Имя должно быть строкой!',
-        en: 'First name must be a string!',
+        message: 'USER.FIRST_NAME_MUST_BE_TEXT',
       }),
   })
   @MinLength(2, {
     message: (args: ValidationArguments) =>
       JSON.stringify({
-        uz: `Ism kamida ${args.constraints[0]} belgidan iborat bo‘lishi kerak!`,
-        ru: `Имя должно содержать не менее ${args.constraints[0]} символов!`,
-        en: `First name must be at least ${args.constraints[0]} characters long!`,
+        message: 'USER.FIRST_NAME_MIN_LENGTH',
       }),
   })
   @MaxLength(30, {
     message: (args: ValidationArguments) =>
       JSON.stringify({
-        uz: `Ism ${args.constraints[0]} belgidan oshmasligi kerak!`,
-        ru: `Имя должно быть не более ${args.constraints[0]} символов!`,
-        en: `First name must be at most ${args.constraints[0]} characters long!`,
+        message: 'USER.FIRST_NAME_MAX_LENGTH',
       }),
   })
   firstName: string;
@@ -54,33 +47,25 @@ export class CreateUserDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Familiya kiritilishi shart!',
-        ru: 'Фамилия обязательна!',
-        en: 'Last name is required!',
+        message: 'USER.LAST_NAME_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Familiya matn bo‘lishi kerak!',
-        ru: 'Фамилия должна быть строкой!',
-        en: 'Last name must be a string!',
+        message: 'USER.LAST_NAME_MUST_BE_TEXT',
       }),
   })
   @MinLength(2, {
     message: (args: ValidationArguments) =>
       JSON.stringify({
-        uz: `Familiya kamida ${args.constraints[0]} belgidan iborat bo‘lishi kerak!`,
-        ru: `Фамилия должна содержать не менее ${args.constraints[0]} символов!`,
-        en: `Last name must be at least ${args.constraints[0]} characters long!`,
+        message: 'USER.LAST_NAME_MIN_LENGTH',
       }),
   })
   @MaxLength(30, {
     message: (args: ValidationArguments) =>
       JSON.stringify({
-        uz: `Familiya ${args.constraints[0]} belgidan oshmasligi kerak!`,
-        ru: `Фамилия должна быть не более ${args.constraints[0]} символов!`,
-        en: `Last name must be at most ${args.constraints[0]} characters long!`,
+        message: 'USER.LAST_NAME_MAX_LENGTH',
       }),
   })
   lastName: string;
@@ -92,33 +77,25 @@ export class CreateUserDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Otasining ismi kiritilishi shart!',
-        ru: 'Отчество обязательно!',
-        en: 'Middle name is required!',
+        message: 'USER.MIDDLE_NAME_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Otasining ismi matn bo‘lishi kerak!',
-        ru: 'Отчество должно быть строкой!',
-        en: 'Middle name must be a string!',
+        message: 'USER.MIDDLE_NAME_MUST_BE_TEXT',
       }),
   })
   @MinLength(2, {
     message: (args: ValidationArguments) =>
       JSON.stringify({
-        uz: `Otasining ismi kamida ${args.constraints[0]} belgidan iborat bo‘lishi kerak!`,
-        ru: `Отчество должно содержать не менее ${args.constraints[0]} символов!`,
-        en: `Middle name must be at least ${args.constraints[0]} characters long!`,
+        message: 'USER.MIDDLE_NAME_MIN_LENGTH',
       }),
   })
   @MaxLength(30, {
     message: (args: ValidationArguments) =>
       JSON.stringify({
-        uz: `Otasining ismi ${args.constraints[0]} belgidan oshmasligi kerak!`,
-        ru: `Отчество должно быть не более ${args.constraints[0]} символов!`,
-        en: `Middle name must be at most ${args.constraints[0]} characters long!`,
+        message: 'USER.MIDDLE_NAME_MAX_LENGTH',
       }),
   })
   middleName: string;
@@ -130,17 +107,13 @@ export class CreateUserDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Login kiritilishi shart!',
-        ru: 'Логин обязателен!',
-        en: 'Login is required!',
+        message: 'USER.LOGIN_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Login matn bo‘lishi kerak!',
-        ru: 'Логин должен быть строкой!',
-        en: 'Login must be a string!',
+        message: 'USER.LOGIN_MUST_BE_TEXT',
       }),
   })
   login: string;
@@ -152,9 +125,7 @@ export class CreateUserDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Parol kiritilishi shart!',
-        ru: 'Пароль обязателен!',
-        en: 'Password is required!',
+        message: 'USER.PASSWORD_REQUIRED',
       }),
   })
   @IsStrongPassword(
@@ -168,9 +139,7 @@ export class CreateUserDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Parol yetarlicha murakkab emas!',
-          ru: 'Пароль недостаточно сложный!',
-          en: 'Password is not strong enough!',
+          message: 'USER.PASSWORD_NOT_STRONG',
         }),
     },
   )
@@ -183,17 +152,13 @@ export class CreateUserDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Telefon raqami kiritilishi shart!',
-        ru: 'Номер телефона обязателен!',
-        en: 'Phone number is required!',
+        message: 'USER.PHONE_REQUIRED',
       }),
   })
   @IsPhoneNumber('UZ', {
     message: () =>
       JSON.stringify({
-        uz: 'Telefon raqami noto‘g‘ri!',
-        ru: 'Номер телефона недействителен!',
-        en: 'Phone number not valid!',
+        message: 'USER.PHONE_NOT_VALID',
       }),
   })
   phone: string;
@@ -206,25 +171,23 @@ export class CreateUserDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Avatar URL matn bo‘lishi kerak!',
-        ru: 'URL аватара должен быть строкой!',
-        en: 'Avatar URL must be a string!',
+        message: 'USER.AVATAR_URL_MUST_BE_TEXT',
       }),
   })
   avatarUrl?: string;
 
   @ApiProperty({
-    example: '1',
+    example: 'USER',
     description: "This user's role",
   })
-  @IsOptional()
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Rol matn bo‘lishi kerak!',
-        ru: 'Роль должна быть строкой!',
-        en: 'Role must be a string!',
+        message: 'USER.ROLE_MUST_BE_TEXT',
       }),
   })
-  role?: RolesType;
+  @IsEnum(['SUPERADMIN', 'ADMIN', 'STUDENT', 'TEACHER', 'STAFF'], {
+    message: () => JSON.stringify({ message: 'USER.ROLE_MUST_BE_VALID_ENUM' }),
+  })
+  role: RolesType;
 }

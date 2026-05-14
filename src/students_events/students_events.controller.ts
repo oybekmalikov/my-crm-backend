@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CreateStudentsEventDto } from './dto/create-students_event.dto';
@@ -28,6 +29,23 @@ export class StudentsEventsController {
   ) {
     return this.studentsEventsService.setStudentAttended(id, isAttended);
   }
+
+  @ApiOperation({
+    summary: 'Get event by student or event id',
+    description: 'Get event by student or event id',
+  })
+  @ApiResponse({ status: 200, type: Object })
+  @Get('get-event')
+  getEventByStudenOrEventId(
+    @Query('studentId') studentId?: string,
+    @Query('eventId') eventId?: string,
+  ) {
+    return this.studentsEventsService.findByStudentOrEventId(
+      studentId,
+      eventId,
+    );
+  }
+
   @ApiOperation({
     summary: 'Create student event',
     description: 'Create student event',
@@ -55,7 +73,7 @@ export class StudentsEventsController {
   @ApiResponse({ status: 200, type: CreateStudentsEventDto })
   @ApiParam({
     name: 'id',
-    type: 'number',
+    type: 'string',
     required: true,
   })
   @Get(':id')

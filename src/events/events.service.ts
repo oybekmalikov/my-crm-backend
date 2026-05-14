@@ -14,11 +14,7 @@ export class EventsService {
   async create(createEventDto: CreateEventDto) {
     const event = await this.eventModel.create(createEventDto);
     return {
-      message: {
-        uz: 'Tadbir muvaffaqiyatli qo`shildi',
-        ru: 'Событие успешно добавлено',
-        en: 'Event added successfully',
-      },
+      message: 'EVENT.CREATED',
       data: event,
       success: true,
     };
@@ -37,22 +33,14 @@ export class EventsService {
 
     if (data.length === 0) {
       return {
-        message: {
-          uz: 'Hozircha tadbirlar mavjud emas',
-          ru: 'Пока что нет событий',
-          en: 'No events yet',
-        },
+        message: 'EVENT.LIST_EMPTY',
         data: [],
         success: true,
       };
     }
     return {
-      message: {
-        uz: 'Tadbirlar ro‘yxati',
-        ru: 'Список событий',
-        en: 'List of events',
-      },
-      data: { events: data, total, page, limit },
+      message: 'EVENT.LIST_FOUND',
+      data: { data, total, page, limit },
       success: true,
     };
   }
@@ -63,18 +51,10 @@ export class EventsService {
       .populate('students')
       .exec();
     if (!event) {
-      throw new NotFoundException({
-        uz: 'Tadbir topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('EVENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Tadbir topildi',
-        ru: 'Событие найдено',
-        en: 'Event found',
-      },
+      message: 'EVENT.FOUND',
       data: event,
       success: true,
     };
@@ -85,18 +65,10 @@ export class EventsService {
       .findByIdAndUpdate(id, updateEventDto, { new: true })
       .exec();
     if (!event) {
-      throw new NotFoundException({
-        uz: 'Tadbir topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('EVENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Tadbir muvaffaqiyatli yangilandi',
-        ru: 'Событие успешно обновлено',
-        en: 'Event updated successfully',
-      },
+      message: 'EVENT.UPDATED',
       data: event,
       success: true,
     };
@@ -105,18 +77,10 @@ export class EventsService {
   async remove(id: string) {
     const deleted = await this.eventModel.findByIdAndDelete(id).exec();
     if (!deleted) {
-      throw new NotFoundException({
-        uz: 'Tadbir topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('EVENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Tadbir muvaffaqiyatli o‘chirildi',
-        ru: 'Событие успешно удалено',
-        en: 'Event deleted successfully',
-      },
+      message: 'EVENT.DELETED',
       data: { affected: 1 },
       success: true,
     };
@@ -130,11 +94,7 @@ export class EventsService {
   ) {
     const event = await this.eventModel.findById(eventId).exec();
     if (!event) {
-      throw new NotFoundException({
-        uz: 'Tadbir topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('EVENT.NOT_FOUND');
     }
     if (newStatus) event.status = newStatus;
     if (newDate) event.date = newDate;
@@ -143,11 +103,7 @@ export class EventsService {
     await event.save();
 
     return {
-      message: {
-        uz: 'Tadbir muvaffaqiyatli yangilandi',
-        ru: 'Событие успешно обновлено',
-        en: 'Event updated successfully',
-      },
+      message: 'EVENT.UPDATED',
       data: event,
       success: true,
     };

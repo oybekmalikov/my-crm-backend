@@ -45,43 +45,34 @@ export class AuthService {
   async signIn(signInDto: SignInDto, res: Response) {
     const user = await this.usersService.findUserByLogin(signInDto.login);
     if (!user) {
-      throw new BadRequestException({
-        uz: "Login yoki parol noto'g'ri!",
-        ru: 'Неверный логин или пароль!',
-        en: 'Email or password incorrect!',
-      });
+      throw new BadRequestException('AUTH.INVALID_LOGIN_OR_PASSWORD');
     }
     const isValidPassword = await bcrypt.compare(
       signInDto.password,
       user.password,
     );
     if (!isValidPassword) {
-      throw new BadRequestException({
-        uz: "Login yoki parol noto'g'ri!",
-        ru: 'Неверный логин или пароль!',
-        en: 'Email or password incorrect!',
-      });
+      throw new BadRequestException('AUTH.INVALID_LOGIN_OR_PASSWORD');
     }
     if (!user.isActive) {
-      throw new BadRequestException({
-        uz: "Hisobingiz faollashtirilmagan. Iltimos, adminstrator bilan bog'laning.",
-        ru: 'Ваш аккаунт не активирован. Пожалуйста, свяжитесь с администратором.',
-        en: 'Your account is not activated. Please contact the administrator.',
-      });
+      throw new BadRequestException('AUTH.INACTIVE_ACCOUNT');
     }
     const { accessToken, refreshToken } = await this.generateTokens(user);
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       maxAge: Number(process.env.COOKIE_TIME),
     });
-    await this.usersService.updateRefreshToken((user as any)._id.toString(), refreshToken);
+    await this.usersService.updateRefreshToken(
+      (user as any)._id.toString(),
+      refreshToken,
+    );
     return {
-      message: {
-        uz: 'Siz muvaffaqiyatli tizimga kirdingiz.',
-        ru: 'Вы успешно вошли в систему.',
-        en: 'You have successfully logged in.',
+      message: 'AUTH.LOGGED_IN',
+      data: {
+        accessToken,
+        userId: (user as any)._id.toString(),
+        role: user.role,
       },
-      data: { accessToken, userId: (user as any)._id.toString(), role: user.role },
       success: true,
     };
   }
@@ -90,28 +81,19 @@ export class AuthService {
       secret: process.env.REFRESH_TOKEN_KEY,
     });
     if (!userData) {
-      throw new ForbiddenException({
-        uz: 'Foydalanuvchi ro‘yxatdan o‘tmagan!',
-        ru: 'Неавторизованный пользователь!',
-        en: 'Unauthorized user!',
-      });
+      throw new ForbiddenException('AUTH.UNAUTHORIZED');
     }
     const user = await this.usersService.findUserByLogin(userData.login);
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('AUTH.USER_NOT_FOUND');
     }
-    await this.usersService.updateRefreshToken((user as any)._id.toString(), '');
+    await this.usersService.updateRefreshToken(
+      (user as any)._id.toString(),
+      '',
+    );
     res.clearCookie('refresh_token');
     return {
-      message: {
-        uz: 'Siz muvaffaqiyatli tizimdan chiqdingiz.',
-        ru: 'Вы успешно вышли из системы.',
-        en: 'You have successfully logged out.',
-      },
+      message: 'AUTH.LOGGED_OUT',
       data: null,
       success: true,
     };
@@ -120,32 +102,25 @@ export class AuthService {
   async refreshTokenUser(userId: string, refresh_token: string, res: Response) {
     const decodedToken = await this.jwtService.decode(refresh_token);
     if (userId !== decodedToken['userId']) {
-      throw new ForbiddenException({
-        uz: 'Ruxsat etilmagan foydalanuvchi!',
-        ru: 'Неавторизованный пользователь!',
-        en: 'Unauthorized user!',
-      });
+      throw new ForbiddenException('AUTH.UNAUTHORIZED');
     }
     const user = await this.usersService.findOne(userId);
-    if (!user && !user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+    if (!user) {
+      throw new NotFoundException('AUTH.USER_NOT_FOUND');
     }
-    const { accessToken, refreshToken } = await this.generateTokens(user.data! as any);
-    await this.usersService.updateRefreshToken((user.data! as any)._id.toString(), refreshToken);
+    const { accessToken, refreshToken } = await this.generateTokens(
+      user.data! as any,
+    );
+    await this.usersService.updateRefreshToken(
+      (user.data! as any)._id.toString(),
+      refreshToken,
+    );
     res.cookie('refresh_token', refreshToken, {
       maxAge: Number(process.env.COOKIE_TIME),
       httpOnly: true,
     });
     return {
-      message: {
-        uz: 'Yangi token yaratildi.',
-        ru: 'Создан новый токен.',
-        en: 'New token created.',
-      },
+      message: 'AUTH.TOKEN_REFRESHED',
       data: { userId: (user.data! as any)._id.toString(), accessToken },
       success: true,
     };
@@ -158,25 +133,17 @@ export class AuthService {
   ) {
     const user = await this.usersService.findOne(userId);
     if (!user) {
-      throw new NotFoundException({});
+      throw new NotFoundException('AUTH.USER_NOT_FOUND');
     }
     const isValidPassword = await bcrypt.compare(
       oldPassword,
       user.data!.password,
     );
     if (!isValidPassword) {
-      throw new BadRequestException({
-        uz: "Eski parol noto'g'ri!",
-        ru: 'Старый пароль неверен!',
-        en: 'Old password is incorrect!',
-      });
+      throw new BadRequestException('AUTH.OLD_PASSWORD_INCORRECT');
     }
     if (newPassword !== confirmPassword) {
-      throw new BadRequestException({
-        uz: 'Yangi parol va parolni tasdiqlash mos emas!',
-        ru: 'Новый пароль и подтверждение пароля не совпадают!',
-        en: 'New password and confirm password do not match!',
-      });
+      throw new BadRequestException('AUTH.PASSWORDS_NOT_MATCHED');
     }
     const response = await this.usersService.updatePassword(
       userId,

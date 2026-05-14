@@ -1,56 +1,65 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Types, HydratedDocument } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
 export type SupportDocument = HydratedDocument<Support>;
 
 @Schema({ timestamps: true, collection: 'support' })
 export class Support {
   @ApiProperty({
-    example: '60d...',
-    description: 'This is the sender ID number.',
+    example: '64f1a2b3c4d5e6f7a8b9c0d1',
+    description: 'The ID of the user who sent the support request',
   })
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  senderId: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  senderId: string;
 
   @ApiProperty({
-    example: '60d...',
-    description: 'This is the recipt ID number.',
+    example: '64f1a2b3c4d5e6f7a8b9c0d2',
+    description: 'The ID of the staff/admin who received the support request',
   })
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  reciptId: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  reciptId: string;
 
   @ApiProperty({
-    example: 'Assalomu alaykum, how can I help you?',
-    description: 'The content whta user or admin want from each other.',
+    example: 'I have an issue with my payment.',
+    description: 'The content of the support message',
   })
   @Prop({ required: true })
   content: string;
 
   @ApiProperty({
-    example: '/support/...',
-    description: 'This is additional picture for report or issue.',
+    example: 'https://example.com/issue.jpg',
+    description: 'Optional image URL for the support request',
   })
-  @Prop({ required: true })
+  @Prop({ default: '' })
   imageUrl: string;
 
-  @ApiProperty({ example: true, description: 'Is user edited his report.' })
-  @Prop({ required: true })
+  @ApiProperty({
+    example: false,
+    description: 'Whether the message has been edited',
+  })
+  @Prop({ default: false })
   isEdited: boolean;
 
-  @ApiProperty({ example: true, description: 'Is user deleted his report.' })
-  @Prop({ required: true })
+  @ApiProperty({
+    example: false,
+    description: 'Whether the message has been deleted',
+  })
+  @Prop({ default: false })
   isDeleted: boolean;
 
-  @ApiProperty({ example: true, description: 'Is message viewed ?' })
-  @Prop({ required: true })
+  @ApiProperty({
+    example: false,
+    description: 'Whether the message has been viewed',
+  })
+  @Prop({ default: false })
   isViewed: boolean;
 
   @ApiProperty({
-    example: 'original',
-    description: 'If user edited his report, orginal content saved.',
+    example: 'Original message content',
+    description: 'The original content if the message was edited',
   })
-  @Prop({ required: true })
+  @Prop({ default: '' })
   originalContent: string;
 }
 
@@ -63,7 +72,7 @@ SupportSchema.virtual('senderUser', {
   justOne: true,
 });
 
-SupportSchema.virtual('reciptrUser', {
+SupportSchema.virtual('reciptUser', {
   ref: 'User',
   localField: 'reciptId',
   foreignField: '_id',

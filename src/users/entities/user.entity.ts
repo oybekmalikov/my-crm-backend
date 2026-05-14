@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument } from 'mongoose';
-import { RolesType } from '../../@types';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -50,11 +49,11 @@ export class User {
   phone: string;
 
   @ApiProperty({
-    example: 'user',
+    example: 'USER',
     description: "This user's role",
   })
   @Prop({ required: true })
-  role: RolesType;
+  role: string;
 
   @ApiProperty({
     example: '/src/something/avatar.jpg',
@@ -67,7 +66,7 @@ export class User {
     example: true,
     description: "This user's activity",
   })
-  @Prop({ default: false })
+  @Prop({ default: true })
   isActive: boolean;
 
   @ApiProperty({

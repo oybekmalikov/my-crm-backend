@@ -22,11 +22,7 @@ export class StudentsEventsService {
       createStudentsEventDto,
     );
     return {
-      message: {
-        uz: 'Student uchun event muvaffaqiyatli yaratildi',
-        ru: 'Событие для студента успешно создано',
-        en: 'Event for student created successfully',
-      },
+      message: 'STUDENT_EVENT.CREATED',
       data: studentEvent,
       success: true,
     };
@@ -46,8 +42,6 @@ export class StudentsEventsService {
 
     const data = await this.studentsEventModel
       .find(query)
-      .populate('student')
-      .populate('event')
       .skip(skip)
       .limit(limit)
       .sort({ _id: 1 })
@@ -62,21 +56,13 @@ export class StudentsEventsService {
 
     if (finalData.length === 0) {
       return {
-        message: {
-          uz: 'Hozircha eventlaringiz mavjud emas',
-          ru: 'Пока что нет событий',
-          en: 'No events yet',
-        },
+        message: 'STUDENT_EVENT.LIST_EMPTY',
         data: [],
         success: true,
       };
     }
     return {
-      message: {
-        uz: 'Eventlaringiz ro‘yxati',
-        ru: 'Список событий',
-        en: 'List of events',
-      },
+      message: 'STUDENT_EVENT.LIST_FOUND',
       data: { studentsEvent: finalData, total: finalData.length, page, limit },
       success: true,
     };
@@ -89,19 +75,31 @@ export class StudentsEventsService {
       .populate('event')
       .exec();
     if (!studentEvent) {
-      throw new NotFoundException({
-        uz: 'Event topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('STUDENT_EVENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Event topildi',
-        ru: 'Событие найдено',
-        en: 'Event found',
-      },
+      message: 'STUDENT_EVENT.FOUND',
       data: studentEvent,
+      success: true,
+    };
+  }
+
+  async findByStudentOrEventId(studentId?: string, eventId?: string) {
+    const query: any = {};
+    if (studentId) query.studentId = studentId;
+    if (eventId) query.eventId = eventId;
+    console.log(query);
+    const thisEvent = await this.studentsEventModel
+      .find(query)
+      .populate('student')
+      .populate('event')
+      .exec();
+    if (!thisEvent) {
+      throw new NotFoundException('STUDENT_EVENT.NOT_FOUND');
+    }
+    return {
+      message: 'STUDENT_EVENT.FOUND',
+      data: thisEvent,
       success: true,
     };
   }
@@ -111,18 +109,10 @@ export class StudentsEventsService {
       .findByIdAndUpdate(id, updateStudentsEventDto, { new: true })
       .exec();
     if (!studentEvent) {
-      throw new NotFoundException({
-        uz: 'Event topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('STUDENT_EVENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Event muvaffaqiyatli yangilandi',
-        ru: 'Событие успешно обновлено',
-        en: 'Event updated successfully',
-      },
+      message: 'STUDENT_EVENT.UPDATED',
       data: studentEvent,
       success: true,
     };
@@ -131,18 +121,10 @@ export class StudentsEventsService {
   async remove(id: string) {
     const deleted = await this.studentsEventModel.findByIdAndDelete(id).exec();
     if (!deleted) {
-      throw new NotFoundException({
-        uz: 'Event topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('STUDENT_EVENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Event muvaffaqiyatli o‘chirildi',
-        ru: 'Событие успешно удалено',
-        en: 'Event deleted successfully',
-      },
+      message: 'STUDENT_EVENT.DELETED',
       data: { affected: 1 },
       success: true,
     };
@@ -155,11 +137,7 @@ export class StudentsEventsService {
       .populate('event')
       .exec();
     if (!studentEvent) {
-      throw new NotFoundException({
-        uz: 'Event topilmadi',
-        ru: 'Событие не найдено',
-        en: 'Event not found',
-      });
+      throw new NotFoundException('STUDENT_EVENT.NOT_FOUND');
     }
     studentEvent.isAttended = isAttended;
     await studentEvent.save();
@@ -173,11 +151,7 @@ export class StudentsEventsService {
       );
     }
     return {
-      message: {
-        uz: 'Event muvaffaqiyatli yangilandi',
-        ru: 'Событие успешно обновлено',
-        en: 'Event updated successfully',
-      },
+      message: 'STUDENT_EVENT.UPDATED',
       data: studentEvent,
       success: true,
     };

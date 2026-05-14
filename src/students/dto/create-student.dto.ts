@@ -17,17 +17,13 @@ export class CreateStudentDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'userId matn bo‘lishi kerak!',
-        ru: 'userId должен быть строкой!',
-        en: 'userId must be a string!',
+        message: 'STUDENT.USER_ID_MUST_BE_TEXT',
       }),
   })
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'userId kiritilishi shart!',
-        ru: 'userId обязателен!',
-        en: 'userId is required!',
+        message: 'STUDENT.USER_ID_REQUIRED',
       }),
   })
   userId: string;
@@ -41,24 +37,20 @@ export class CreateStudentDto {
     {
       message: () =>
         JSON.stringify({
-          uz: "Sana to'g'ri kiritilishi shart!",
-          ru: 'Дата должна быть введена правильно!',
-          en: 'Date must be entered correctly!',
+          message: 'STUDENT.DATE_OF_BIRTH_MUST_BE_DATE',
         }),
     },
   )
   dateOfBirth: string;
 
   @ApiProperty({
-    example: 'male',
+    example: 'MALE',
     description: 'This is the students gender type',
   })
-  @IsEnum(['male', 'female'], {
+  @IsEnum(['MALE', 'FEMALE'], {
     message: () =>
       JSON.stringify({
-        uz: "Jinsi ayol yoki erkak bo'lishi kerak!",
-        ru: 'Пол должен быть мужским или женским!',
-        en: 'Gender must be male or female!',
+        message: 'STUDENT.GENDER_MUST_BE_VALID_ENUM',
       }),
   })
   gender: string;
@@ -70,9 +62,7 @@ export class CreateStudentDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Manzil matn bo‘lishi kerak!',
-        ru: 'Адрес должен быть строкой!',
-        en: 'Address must be a string!',
+        message: 'STUDENT.ADDRESS_MUST_BE_TEXT',
       }),
   })
   address: string;
@@ -83,9 +73,7 @@ export class CreateStudentDto {
   @IsBoolean({
     message: () =>
       JSON.stringify({
-        uz: 'isActive mantiqiy (boolean) bo‘lishi kerak!',
-        ru: 'isActive должен быть булевым!',
-        en: 'isActive must be a boolean!',
+        message: 'STUDENT.IS_ACTIVE_MUST_BE_BOOLEAN',
       }),
   })
   isActive: boolean;
@@ -100,9 +88,7 @@ export class CreateStudentDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'XP son bo‘lishi kerak!',
-          ru: 'XP должен быть числом!',
-          en: 'XP must be a number!',
+          message: 'STUDENT.XP_MUST_BE_NUMBER',
         }),
     },
   )
@@ -118,9 +104,7 @@ export class CreateStudentDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Point son bo‘lishi kerak!',
-          ru: 'Point должен быть числом!',
-          en: 'Point must be a number!',
+          message: 'STUDENT.POINT_MUST_BE_NUMBER',
         }),
     },
   )
@@ -136,9 +120,7 @@ export class CreateStudentDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'O‘rtacha ball son bo‘lishi kerak!',
-          ru: 'Средний балл должен быть числом!',
-          en: 'Avarage mark must be a number!',
+          message: 'STUDENT.AVERAGE_MARK_MUST_BE_NUMBER',
         }),
     },
   )
@@ -154,9 +136,7 @@ export class CreateStudentDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Level son bo‘lishi kerak!',
-          ru: 'Level должен быть числом!',
-          en: 'Level must be a number!',
+          message: 'STUDENT.LEVEL_MUST_BE_NUMBER',
         }),
     },
   )

@@ -8,8 +8,8 @@ export interface ReturnningType {
   success: boolean;
 }
 export type RolesType =
-  | 'superadmin'
-  | 'admin'
-  | 'student'
-  | 'teacher'
-  | 'staff';
+  | 'SUPERADMIN'
+  | 'ADMIN'
+  | 'STUDENT'
+  | 'TEACHER'
+  | 'STAFF';

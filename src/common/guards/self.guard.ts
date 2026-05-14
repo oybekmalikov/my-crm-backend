@@ -3,28 +3,28 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-} from "@nestjs/common";
+} from '@nestjs/common';
 
 @Injectable()
 export class SelfGuard implements CanActivate {
   constructor(
-    private readonly paramId = "id",
-    private readonly userId = "id",
+    private readonly paramId = 'id',
+    private readonly userId = 'id',
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
     const user = req.user;
     const paramId = req.params[this.paramId];
-    if (user.role === "superadmin") {
+    if (user.role === 'superadmin') {
       return true;
     }
     if (!paramId || !user) {
-      throw new ForbiddenException("User not authentificated");
+      throw new ForbiddenException({ message: 'NOT_AUTHENTIFICATED' });
     }
 
     if (paramId !== String(user[this.userId])) {
-      throw new ForbiddenException("You can access only your own data");
+      throw new ForbiddenException({ message: 'ACCESS_FOR_OWN_DATA' });
     }
 
     return true;

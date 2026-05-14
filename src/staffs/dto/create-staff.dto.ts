@@ -5,7 +5,6 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
   IsString,
 } from 'class-validator';
 
@@ -17,17 +16,13 @@ export class CreateStaffDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'userId matn bo‘lishi kerak!',
-        ru: 'userId должен быть строкой!',
-        en: 'userId must be a string!',
+        message: 'STAFF.USER_ID_MUST_BE_TEXT',
       }),
   })
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'userId kiritilishi shart!',
-        ru: 'userId обязателен!',
-        en: 'userId is required!',
+        message: 'STAFF.USER_ID_REQUIRED',
       }),
   })
   userId: string;
@@ -41,24 +36,20 @@ export class CreateStaffDto {
     {
       message: () =>
         JSON.stringify({
-          uz: "Sana to'g'ri kiritilishi shart!",
-          ru: 'Дата должна быть введена правильно!',
-          en: 'Date must be entered correctly!',
+          message: 'STAFF.DATE_OF_BIRTH_MUST_BE_DATE',
         }),
     },
   )
   dateOfBirth: string;
 
   @ApiProperty({
-    example: 'male',
+    example: 'MALE',
     description: 'This is the staffs gender type',
   })
-  @IsEnum(['male', 'female'], {
+  @IsEnum(['MALE', 'FEMALE'], {
     message: () =>
       JSON.stringify({
-        uz: "Jinsi ayol yoki erkak bo'lishi kerak!",
-        ru: 'Пол должен быть мужским или женским!',
-        en: 'Gender must be male or female!',
+        message: 'STAFF.GENDER_MUST_BE_VALID_ENUM',
       }),
   })
   gender: string;
@@ -70,9 +61,7 @@ export class CreateStaffDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Manzil matn bo‘lishi kerak!',
-        ru: 'Адрес должен быть строкой!',
-        en: 'Address must be a string!',
+        message: 'STAFF.ADDRESS_MUST_BE_TEXT',
       }),
   })
   address: string;
@@ -83,9 +72,7 @@ export class CreateStaffDto {
   @IsBoolean({
     message: () =>
       JSON.stringify({
-        uz: 'isActive mantiqiy (boolean) bo‘lishi kerak!',
-        ru: 'isActive должен быть булевым!',
-        en: 'isActive must be a boolean!',
+        message: 'STAFF.IS_ACTIVE_MUST_BE_BOOLEAN',
       }),
   })
   isActive: boolean;
@@ -99,9 +86,7 @@ export class CreateStaffDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Maosh son bo‘lishi kerak!',
-          ru: 'Зарплата должен быть числом!',
-          en: 'Salary must be a number!',
+          message: 'STAFF.SALARY_MUST_BE_NUMBER',
         }),
     },
   )
@@ -120,9 +105,7 @@ export class CreateStaffDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Lavozim matn bo‘lishi kerak!',
-        ru: 'Должность должна быть строкой!',
-        en: 'Position must be a string!',
+        message: 'STAFF.POSITION_MUST_BE_TEXT',
       }),
   })
   position: string;

@@ -16,17 +16,13 @@ export class CreateEventDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Title kiritilishi shart!',
-        ru: 'Название обязательно!',
-        en: 'Title is required!',
+        message: 'EVENT.TITLE_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Title matn bo‘lishi kerak!',
-        ru: 'Название должно быть строкой!',
-        en: 'Title must be a string!',
+        message: 'EVENT.TITLE_MUST_BE_TEXT',
       }),
   })
   title: string;
@@ -38,17 +34,13 @@ export class CreateEventDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: 'Description kiritilishi shart!',
-        ru: 'Описание обязательно!',
-        en: 'Description is required!',
+        message: 'EVENT.DESCRIPTION_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Description matn bo‘lishi kerak!',
-        ru: 'Описание должно быть строкой!',
-        en: 'Description must be a string!',
+        message: 'EVENT.DESCRIPTION_MUST_BE_TEXT',
       }),
   })
   description: string;
@@ -60,20 +52,16 @@ export class CreateEventDto {
   @IsNotEmpty({
     message: () =>
       JSON.stringify({
-        uz: "Mehmonni to'liq ismi kiritilishi shart!",
-        ru: 'Полное имя гостя обязательно!',
-        en: 'Guest full name is required!',
+        message: 'EVENT.GUEST_FULLNAME_REQUIRED',
       }),
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Mehmonni to`liq ismi matn bo‘lishi kerak!',
-        ru: 'Полное имя гостя должно быть строкой!',
-        en: 'Guest full name must be a string!',
+        message: 'EVENT.GUEST_FULLNAME_MUST_BE_TEXT',
       }),
   })
-  guestFullName: string;
+  guestFullName!: string;
 
   @ApiProperty({
     example: 'Ryan Dahl is the creator of Node.js',
@@ -83,9 +71,7 @@ export class CreateEventDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Mehmon haqida tavsif matn bo‘lishi kerak!',
-        ru: 'Описание гостя должно быть строкой!',
-        en: 'Guest description must be a string!',
+        message: 'EVENT.GUEST_DESCRIPTION_MUST_BE_TEXT',
       }),
   })
   guestDescription: string;
@@ -97,9 +83,7 @@ export class CreateEventDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Mehmon rasmini URLi matn bo‘lishi kerak!',
-        ru: 'URL картинки гостя должно быть строкой!',
-        en: 'Guest picture URL must be a string!',
+        message: 'EVENT.GUEST_PICTURE_URL_MUST_BE_TEXT',
       }),
   })
   guestPictureUrl: string;
@@ -113,9 +97,7 @@ export class CreateEventDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Umumiy joylar soni bo‘lishi kerak!',
-          ru: 'Общее количество мест должно быть числом!',
-          en: 'The number of total places must be a number!',
+          message: 'EVENT.TOTAL_PLACES_MUST_BE_NUMBER',
         }),
     },
   )
@@ -130,9 +112,7 @@ export class CreateEventDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Umumiy joylar soni bo‘lishi kerak!',
-          ru: 'Общее количество мест должно быть числом!',
-          en: 'The number of total places must be a number!',
+          message: 'EVENT.AVAILABLE_PLACES_MUST_BE_NUMBER',
         }),
     },
   )
@@ -147,9 +127,7 @@ export class CreateEventDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Sana bo‘lishi kerak!',
-          ru: 'Дата должна быть датой!',
-          en: 'Date must be a date!',
+          message: 'EVENT.DATE_MUST_BE_DATE',
         }),
     },
   )
@@ -161,9 +139,7 @@ export class CreateEventDto {
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: 'Vaqt matn bo‘lishi kerak!',
-        ru: 'Время должно быть строкой!',
-        en: 'Time must be a string!',
+        message: 'EVENT.TIME_MUST_BE_TEXT',
       }),
   })
   time: string;
@@ -177,24 +153,20 @@ export class CreateEventDto {
     {
       message: () =>
         JSON.stringify({
-          uz: 'Narx bo‘lishi kerak!',
-          ru: 'Цена должна быть числом!',
-          en: 'Price must be a number!',
+          message: 'EVENT.POINT_FOR_EVENT_MUST_BE_NUMBER',
         }),
     },
   )
   pointForEvent: number;
 
   @ApiProperty({
-    example: 'Scheduled',
+    example: 'SCHEDULED',
     description: "This is the event's status",
   })
-  @IsEnum(['Scheduled', 'Started', 'Finished', 'Canceled'], {
+  @IsEnum(['SCHEDULED', 'STARTED', 'FINIHSED', 'CANCELLED'], {
     message: () =>
       JSON.stringify({
-        uz: 'Status Scheduled, Started, Finished yoki Canceled bo‘lishi kerak!',
-        ru: 'Статус должен быть Scheduled, Started, Finished или Canceled!',
-        en: 'Status must be Scheduled, Started, Finished or Canceled!',
+        message: 'EVENT.STATUS_MUST_BE_VALID_ENUM',
       }),
   })
   status: string;

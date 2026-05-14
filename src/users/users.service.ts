@@ -23,21 +23,13 @@ export class UsersService {
       .findOne({ login: createUserDto.login })
       .exec();
     if (existsUserWithLogin) {
-      throw new ConflictException({
-        uz: 'Bunday login mavjud',
-        ru: 'Такой логин уже существует',
-        en: 'User with this login already exists',
-      });
+      throw new ConflictException('USER.LOGIN_ALREADY_EXISTS');
     }
     const existsUserWithPhone = await this.userModel
       .findOne({ phone: createUserDto.phone })
       .exec();
     if (existsUserWithPhone) {
-      throw new ConflictException({
-        uz: 'Bunday telefon raqam mavjud',
-        ru: 'Такой номер телефона уже существует',
-        en: 'User with this phone number already exists',
-      });
+      throw new ConflictException('USER.PHONE_ALREADY_EXISTS');
     }
     const hashedPassword = await bcrypt.hash(createUserDto.password, 7);
     const user = await this.userModel.create({
@@ -45,11 +37,7 @@ export class UsersService {
       password: hashedPassword,
     });
     return {
-      message: {
-        uz: 'Foydalanuvchi muvaffaqiyatli yaratildi',
-        ru: 'Пользователь успешно создан',
-        en: 'User created successfully',
-      },
+      message: 'USER.CREATED',
       data: user,
       success: true,
     };
@@ -66,21 +54,13 @@ export class UsersService {
     const total = await this.userModel.countDocuments();
     if (data.length === 0) {
       return {
-        message: {
-          uz: 'Hozircha foydalanuvchilar mavjud emas',
-          ru: 'Пока что нет пользователей',
-          en: 'No users yet',
-        },
+        message: 'USER.LIST_EMPTY',
         data: [],
         success: true,
       };
     }
     return {
-      message: {
-        uz: 'Foydalanuvchilar ro‘yxati',
-        ru: 'Список пользователей',
-        en: 'List of users',
-      },
+        message: 'USER.LIST_FOUND',
       data: { users: data, total, page, limit },
       success: true,
     };
@@ -93,18 +73,10 @@ export class UsersService {
       .populate('staffs')
       .exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Foydalanuvchi topildi',
-        ru: 'Пользователь найден',
-        en: 'User found',
-      },
+        message: 'USER.FOUND',
       data: user,
       success: true,
     };
@@ -113,30 +85,18 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userModel.findById(id).exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     if (updateUserDto.login || updateUserDto.phone) {
       return {
-        message: {
-          uz: 'Login va telefon raqam yangilash uchun admin bilan bog‘laning.',
-          ru: 'Обновить логин и номер телефона можно связавшись с администратором.',
-          en: 'To update login and phone number, please contact the administrator.',
-        },
+        message: 'USER.UPDATE_LOGIN_PHONE_CONTACT_ADMIN',
         data: null,
         success: false,
       };
     }
     if (updateUserDto.password) {
       return {
-        message: {
-          uz: 'Parolni yangilash uchun alohida yo‘nalish mavjud.',
-          ru: 'Для обновления пароля существует отдельный маршрут.',
-          en: 'There is a separate route for updating the password.',
-        },
+        message: 'USER.UPDATE_PASSWORD_ROUTE',
         data: null,
         success: false,
       };
@@ -145,11 +105,7 @@ export class UsersService {
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
     return {
-      message: {
-        uz: 'Foydalanuvchi muvaffaqiyatli yangilandi',
-        ru: 'Пользователь успешно обновлен',
-        en: 'User updated successfully',
-      },
+        message: 'USER.UPDATED',
       data: updated,
       success: true,
     };
@@ -158,18 +114,10 @@ export class UsersService {
   async remove(id: string) {
     const deleted = await this.userModel.findByIdAndDelete(id).exec();
     if (!deleted) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Foydalanuvchi muvaffaqiyatli o‘chirildi',
-        ru: 'Пользователь успешно удален',
-        en: 'User deleted successfully',
-      },
+        message: 'USER.DELETED',
       data: { affected: 1 },
       success: true,
     };
@@ -182,11 +130,7 @@ export class UsersService {
   async updateRefreshToken(id: string, refreshToken: string) {
     const user = await this.userModel.findByIdAndUpdate(id, { refreshToken }, { new: true }).exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     return user;
   }
@@ -194,20 +138,12 @@ export class UsersService {
   async updatePassword(id: string, password: string) {
     const user = await this.userModel.findById(id).exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     const hashedPassword = await bcrypt.hash(password, 7);
     await this.userModel.findByIdAndUpdate(id, { password: hashedPassword }).exec();
     return {
-      message: {
-        uz: 'Parol muvaffaqiyatli yangilandi!',
-        ru: 'Пароль успешно обновлен!',
-        en: 'Password updated successfully!',
-      },
+        message: 'USER.PASSWORD_UPDATED',
       success: true,
     };
   }
@@ -218,18 +154,10 @@ export class UsersService {
       .populate('students')
       .exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     return {
-      message: {
-        uz: "Foydalanuvchi ma'lumotlari",
-        ru: 'Данные пользователя',
-        en: 'User data',
-      },
+        message: 'USER.PROFILE_DATA',
       data: user,
       success: true,
     };
@@ -238,11 +166,7 @@ export class UsersService {
   async uploadUserAvatar(id: string, file: Express.Multer.File) {
     const user = await this.userModel.findById(id).exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     if (user.avatarUrl) {
       const oldFilename = user.avatarUrl.split('/').pop();
@@ -255,11 +179,7 @@ export class UsersService {
       avatarUrl: `${process.env.API_HOST}${avatarUrl}`,
     }).exec();
     return {
-      message: {
-        uz: 'Foydalanuvchi avatari muvaffaqiyatli yuklandi',
-        ru: 'Аватар пользователя успешно загружен',
-        en: 'User avatar uploaded successfully',
-      },
+        message: 'USER.AVATAR_UPLOADED',
       data: { avatarUrl: `${process.env.API_HOST}${avatarUrl}` },
       success: true,
     };
@@ -268,11 +188,7 @@ export class UsersService {
   async deleteUserAvatar(id: string) {
     const user = await this.userModel.findById(id).exec();
     if (!user) {
-      throw new NotFoundException({
-        uz: 'Foydalanuvchi topilmadi',
-        ru: 'Пользователь не найден',
-        en: 'User not found',
-      });
+      throw new NotFoundException('USER.NOT_FOUND');
     }
     if (user.avatarUrl) {
       const filename = user.avatarUrl.split('/').pop();
@@ -282,11 +198,7 @@ export class UsersService {
       await this.userModel.findByIdAndUpdate(id, { avatarUrl: '' }).exec();
     }
     return {
-      message: {
-        uz: "Foydalanuvchi avatari muvaffaqiyatli o'chirildi",
-        ru: 'Аватар пользователя успешно удален',
-        en: 'User avatar deleted successfully',
-      },
+        message: 'USER.AVATAR_DELETED',
       data: { avatarUrl: null },
       success: true,
     };

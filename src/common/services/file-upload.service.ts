@@ -1,13 +1,13 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import * as fs from "fs";
-import { diskStorage } from "multer";
-import * as path from "path";
-import { extname } from "path";
-import { v4 as uuidv4 } from "uuid";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class FileUploadService {
-  private readonly uploadPath = "assets/user-profile-images";
+  private readonly uploadPath = 'assets/user-profile-images';
   constructor() {
     this.ensureUploadDirectory();
   }
@@ -30,7 +30,7 @@ export class FileUploadService {
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.match(/^image\/(jpg|jpeg|png|gif|webp)$/)) {
           return cb(
-            new BadRequestException("Only image files are allowed!"),
+            new BadRequestException({ message: 'INVALID_IMAGE_TYPE' }),
             false,
           );
         }

@@ -1,26 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { Notification, NotificationDocument } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationsService {
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+  constructor(
+    @InjectModel(Notification.name)
+    private notificationModel: Model<NotificationDocument>,
+  ) {}
+
+  async create(createNotificationDto: CreateNotificationDto) {
+    const notification = await this.notificationModel.create(createNotificationDto);
+    return {
+      message: 'NOTIFICATION.CREATED',
+      data: notification,
+      success: true,
+    };
   }
 
-  findAll() {
-    return `This action returns all notifications`;
+  async findAll(limit: number = 10, page: number = 1, userId?: string) {
+    const skip = (page - 1) * limit;
+    const query = userId ? { userId } : {};
+    const data = await this.notificationModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .exec();
+    const total = await this.notificationModel.countDocuments(query);
+
+    if (data.length === 0) {
+      return {
+        message: 'NOTIFICATION.LIST_EMPTY',
+        data: [],
+        success: true,
+      };
+    }
+    return {
+      message: 'NOTIFICATION.LIST_FOUND',
+      data: { data, total, page, limit },
+      success: true,
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
+  async findOne(id: string) {
+    const notification = await this.notificationModel.findById(id).exec();
+    if (!notification) {
+      throw new NotFoundException('NOTIFICATION.NOT_FOUND');
+    }
+    return {
+      message: 'NOTIFICATION.FOUND',
+      data: notification,
+      success: true,
+    };
   }
 
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    return `This action updates a #${id} notification`;
+  async update(id: string, updateNotificationDto: UpdateNotificationDto) {
+    const notification = await this.notificationModel
+      .findByIdAndUpdate(id, updateNotificationDto, { new: true })
+      .exec();
+    if (!notification) {
+      throw new NotFoundException('NOTIFICATION.NOT_FOUND');
+    }
+    return {
+      message: 'NOTIFICATION.UPDATED',
+      data: notification,
+      success: true,
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
+  async remove(id: string) {
+    const deleted = await this.notificationModel.findByIdAndDelete(id).exec();
+    if (!deleted) {
+      throw new NotFoundException('NOTIFICATION.NOT_FOUND');
+    }
+    return {
+      message: 'NOTIFICATION.DELETED',
+      data: { affected: 1 },
+      success: true,
+    };
+  }
+
+  async markAsRead(id: string) {
+    const notification = await this.notificationModel
+      .findByIdAndUpdate(id, { isRead: true }, { new: true })
+      .exec();
+    if (!notification) {
+      throw new NotFoundException('NOTIFICATION.NOT_FOUND');
+    }
+    return {
+      message: 'NOTIFICATION.MARKED_AS_READ',
+      data: notification,
+      success: true,
+    };
   }
 }

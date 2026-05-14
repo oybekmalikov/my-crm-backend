@@ -1,76 +1,77 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNumber,
-  IsString,
-  MinLength,
-  ValidationArguments,
-} from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateSupportDto {
-  @ApiProperty({ example: 1, description: 'This is the sender users ID. ' })
-  @IsNumber(
-    {},
-    {
-      message: () =>
-        JSON.stringify({
-          uz: 'Notug‘ri foydalanuvchi ID!',
-          ru: 'Неправильный пользователь ID!',
-          en: 'Invalid user ID!',
-        }),
-    },
-  )
+  @ApiProperty({
+    example: '64f1a2b3c4d5e6f7a8b9c0d1',
+    description: 'The ID of the user who sent the support request',
+  })
+  @IsMongoId({
+    message: () =>
+      JSON.stringify({
+        message: 'SUPPORT.SENDER_ID_INVALID',
+      }),
+  })
+  @IsNotEmpty({
+    message: () =>
+      JSON.stringify({
+        message: 'SUPPORT.SENDER_ID_REQUIRED',
+      }),
+  })
   senderId: string;
 
   @ApiProperty({
-    example: 1,
-    description: 'This is the recipt users ID. ',
+    example: '64f1a2b3c4d5e6f7a8b9c0d2',
+    description: 'The ID of the staff/admin who received the support request',
   })
-  @IsNumber(
-    {},
-    {
-      message: () =>
-        JSON.stringify({
-          uz: 'Notug‘ri foydalanuvchi ID!',
-          ru: 'Неправильный пользователь ID!',
-          en: 'Invalid user ID!',
-        }),
-    },
-  )
+  @IsMongoId({
+    message: () =>
+      JSON.stringify({
+        message: 'SUPPORT.RECEIPT_ID_INVALID',
+      }),
+  })
+  @IsNotEmpty({
+    message: () =>
+      JSON.stringify({
+        message: 'SUPPORT.RECEIPT_ID_REQUIRED',
+      }),
+  })
   reciptId: string;
 
   @ApiProperty({
-    example: 'Some message',
-    description: 'This is the content of the message',
+    example: 'I have an issue with my payment.',
+    description: 'The content of the support message',
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: '!',
-        ru: 'Отчество должно быть строкой!',
-        en: 'Middle name must be a string!',
+        message: 'SUPPORT.CONTENT_MUST_BE_TEXT',
+      }),
+  })
+  @IsNotEmpty({
+    message: () =>
+      JSON.stringify({
+        message: 'SUPPORT.CONTENT_REQUIRED',
       }),
   })
   @MinLength(5, {
-    message: (args: ValidationArguments) =>
+    message: () =>
       JSON.stringify({
-        uz: `Content kamida ${args.constraints[0]} belgidan iborat bo‘lishi kerak!`,
-        ru: `Содержание должно содержать не менее ${args.constraints[0]} символов!`,
-        en: `Content must be at least ${args.constraints[0]} characters long!`,
+        message: 'SUPPORT.CONTENT_TOO_SHORT',
       }),
   })
   content: string;
 
   @ApiProperty({
-    example: '/images/example.png',
-    description: "This user's image path",
+    example: 'https://example.com/issue.jpg',
+    description: 'Optional image URL for the support request',
   })
   @IsString({
     message: () =>
       JSON.stringify({
-        uz: "Rasm yo'li matn bo‘lishi kerak!",
-        ru: 'Путь к изображению должен быть строкой!',
-        en: 'Image path must be a string!',
+        message: 'SUPPORT.IMAGE_URL_MUST_BE_TEXT',
       }),
   })
-  imageUrl: string;
+  @IsOptional()
+  imageUrl?: string;
 }

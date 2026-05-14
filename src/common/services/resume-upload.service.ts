@@ -1,13 +1,13 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import * as fs from "fs";
-import { diskStorage } from "multer";
-import * as path from "path";
-import { extname } from "path";
-import { v4 as uuidv4 } from "uuid";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ResumeUploadService {
-  private readonly uploadPath = "assets/resumes";
+  private readonly uploadPath = 'assets/resumes';
 
   constructor() {
     this.ensureUploadDirectory();
@@ -33,12 +33,12 @@ export class ResumeUploadService {
       fileFilter: (req, file, cb) => {
         // Allow PDF, DOC, and DOCX files
         const allowedMimeTypes = [
-          "application/pdf",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ];
 
-        const allowedExtensions = [".pdf", ".doc", ".docx"];
+        const allowedExtensions = ['.pdf', '.doc', '.docx'];
         const fileExtension = extname(file.originalname).toLowerCase();
 
         if (
@@ -46,9 +46,7 @@ export class ResumeUploadService {
           !allowedExtensions.includes(fileExtension)
         ) {
           return cb(
-            new BadRequestException(
-              "Only PDF, DOC, and DOCX files are allowed!",
-            ),
+            new BadRequestException({ message: 'INVALID_RESUME_TYPE' }),
             false,
           );
         }
@@ -79,7 +77,7 @@ export class ResumeUploadService {
     file: Express.Multer.File,
   ): Promise<{ filename: string; originalName: string; fileUrl: string }> {
     if (!file) {
-      throw new BadRequestException("No file uploaded");
+      throw new BadRequestException({ message: 'NO_FILE_UPLOADED' });
     }
 
     const fileExtension = path.extname(file.originalname);

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Types, HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type StudentsEventDocument = HydratedDocument<StudentsEvent>;
 
@@ -26,6 +26,18 @@ export class StudentsEvent {
   })
   @Prop({ default: false })
   isAttended: boolean;
+  @ApiProperty({
+    example: true,
+    description: "This is the point given for student's attandance ",
+  })
+  @Prop({ default: 0 })
+  givenPointForEvent: number;
+  @ApiProperty({
+    example: true,
+    description: "This is the student's attendance status",
+  })
+  @Prop({ defaul: 'SCHEDULED' })
+  status: string;
 }
 
 export const StudentsEventSchema = SchemaFactory.createForClass(StudentsEvent);

@@ -15,11 +15,7 @@ export class StudentsService {
   async create(createStudentDto: CreateStudentDto) {
     const student = await this.studentModel.create(createStudentDto);
     return {
-      message: {
-        uz: 'Student muvaffaqiyatli yaratildi',
-        ru: 'Студент успешно создан',
-        en: 'Student created successfully',
-      },
+      message: 'STUDENT.CREATED',
       data: student,
       success: true,
     };
@@ -36,21 +32,13 @@ export class StudentsService {
     const total = await this.studentModel.countDocuments();
     if (data.length === 0) {
       return {
-        message: {
-          uz: 'Hozircha studentlar mavjud emas',
-          ru: 'Пока что нет студентов',
-          en: 'No students yet',
-        },
+        message: 'STUDENT.LIST_EMPTY',
         data: [],
         success: true,
       };
     }
     return {
-      message: {
-        uz: 'Studentlar ro‘yxati',
-        ru: 'Список студентов',
-        en: 'List of students',
-      },
+        message: 'STUDENT.LIST_FOUND',
       data: { students: data, total, page, limit },
       success: true,
     };
@@ -62,18 +50,10 @@ export class StudentsService {
       .populate('user')
       .exec();
     if (!student) {
-      throw new NotFoundException({
-        uz: 'Student topilmadi',
-        ru: 'Студент не найден',
-        en: 'Student not found',
-      });
+      throw new NotFoundException('STUDENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Student topildi',
-        ru: 'Студент найден',
-        en: 'Student found',
-      },
+        message: 'STUDENT.FOUND',
       data: student,
       success: true,
     };
@@ -85,18 +65,10 @@ export class StudentsService {
       .populate('user')
       .exec();
     if (!student) {
-      throw new NotFoundException({
-        uz: 'Student topilmadi',
-        ru: 'Студент не найден',
-        en: 'Student not found',
-      });
+      throw new NotFoundException('STUDENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Student topildi',
-        ru: 'Студент найден',
-        en: 'Student found',
-      },
+        message: 'STUDENT.FOUND',
       data: student,
       success: true,
     };
@@ -107,18 +79,10 @@ export class StudentsService {
       .findByIdAndUpdate(id, updateStudentDto, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException({
-        uz: 'Student topilmadi',
-        ru: 'Студент не найден',
-        en: 'Student not found',
-      });
+      throw new NotFoundException('STUDENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Student muvaffaqiyatli yangilandi',
-        ru: 'Студент успешно обновлен',
-        en: 'Student updated successfully',
-      },
+        message: 'STUDENT.UPDATED',
       data: updated,
       success: true,
     };
@@ -127,18 +91,10 @@ export class StudentsService {
   async remove(id: string) {
     const deleted = await this.studentModel.findByIdAndDelete(id).exec();
     if (!deleted) {
-      throw new NotFoundException({
-        uz: 'Student topilmadi',
-        ru: 'Студент не найден',
-        en: 'Student not found',
-      });
+      throw new NotFoundException('STUDENT.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Student muvaffaqiyatli o‘chirildi',
-        ru: 'Студент успешно удален',
-        en: 'Student deleted successfully',
-      },
+        message: 'STUDENT.DELETED',
       data: { affected: 1 },
       success: true,
     };
@@ -151,11 +107,7 @@ export class StudentsService {
   ) {
     const student = await this.studentModel.findById(id).exec();
     if (!student) {
-      throw new NotFoundException({
-        uz: 'Student topilmadi',
-        ru: 'Студент не найден',
-        en: 'Student not found',
-      });
+      throw new NotFoundException('STUDENT.NOT_FOUND');
     }
     const { level, xp, point } = student;
     if (STUDENT_XP_LEVELS[level] > xp + added_xp) {
@@ -194,11 +146,7 @@ export class StudentsService {
       }
     }
     return {
-      message: {
-        uz: 'Studentning XP va pointlari muvaffaqiyatli yangilandi',
-        ru: 'XP и очки студента успешно обновлены',
-        en: 'Student XP and points updated successfully',
-      },
+        message: 'STUDENT.XP_POINTS_UPDATED',
       data: await this.studentModel.findById(id).exec(),
       success: true,
     };

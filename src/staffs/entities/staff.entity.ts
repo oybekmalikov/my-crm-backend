@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Types, HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type StaffDocument = HydratedDocument<Staff>;
 
@@ -28,7 +28,7 @@ export class Staff {
   address: string;
 
   @ApiProperty({
-    example: 'male',
+    example: 'MALE',
     description: "This is the staff's gender type",
   })
   @Prop({ required: true })

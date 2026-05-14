@@ -1,98 +1,63 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  Param,
-  Patch,
   Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { SupportService } from './support.service';
 import { CreateSupportDto } from './dto/create-support.dto';
 import { UpdateSupportDto } from './dto/update-support.dto';
-import { SupportService } from './support.service';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
+@ApiTags('Support')
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
-  @ApiOperation({
-    summary: 'Create support chat',
-    description: 'Create support chat',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The support has been successfully created.',
-  })
   @Post()
+  @ApiOperation({ summary: 'Create a new support message' })
   create(@Body() createSupportDto: CreateSupportDto) {
     return this.supportService.create(createSupportDto);
   }
 
-  @ApiOperation({
-    summary: 'Get all support chat',
-    description: 'Get all support chat',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'All support chats.',
-  })
   @Get()
-  findAll() {
-    return this.supportService.findAll();
+  @ApiOperation({ summary: 'Get all support messages with pagination' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'userId', required: false, type: String })
+  findAll(
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
+    @Query('userId') userId?: string,
+  ) {
+    return this.supportService.findAll(+(limit || 10), +(page || 1), userId);
   }
 
-  @ApiOperation({
-    summary: 'Get one support chat',
-    description: 'Get one support chat',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Selected support chat.',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'number',
-    required: true,
-  })
   @Get(':id')
+  @ApiOperation({ summary: 'Get a single support message by ID' })
   findOne(@Param('id') id: string) {
-    return this.supportService.findOne(+id);
+    return this.supportService.findOne(id);
   }
 
-  @ApiOperation({
-    summary: 'Update support chat',
-    description: 'Update support chat',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The support has been successfully updated.',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'number',
-    required: true,
-  })
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a support message' })
   update(@Param('id') id: string, @Body() updateSupportDto: UpdateSupportDto) {
-    return this.supportService.update(+id, updateSupportDto);
+    return this.supportService.update(id, updateSupportDto);
   }
 
-  @ApiOperation({
-    summary: 'Delete support chat',
-    description: 'Delete support chat',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The support has been successfully deleted.',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'number',
-    required: true,
-  })
+  @Patch(':id/view')
+  @ApiOperation({ summary: 'Mark a support message as viewed' })
+  markAsViewed(@Param('id') id: string) {
+    return this.supportService.markAsViewed(id);
+  }
+
   @Delete(':id')
+  @ApiOperation({ summary: 'Soft delete a support message' })
   remove(@Param('id') id: string) {
-    return this.supportService.remove(+id);
+    return this.supportService.remove(id);
   }
 }

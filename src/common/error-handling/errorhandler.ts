@@ -4,11 +4,16 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-} from "@nestjs/common";
-import { Request, Response } from "express";
+} from '@nestjs/common';
+import { Request, Response } from 'express';
 @Catch()
 export class ErrorHandler implements ExceptionFilter {
-  constructor() {}
+  private readonly customMessage: string | undefined;
+  private readonly customStatus: number | undefined;
+  constructor(customStatus?: number, customMessage?: string) {
+    this.customMessage = customMessage || undefined;
+    this.customStatus = customStatus || undefined;
+  }
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -23,10 +28,10 @@ export class ErrorHandler implements ExceptionFilter {
       exception instanceof HttpException ? exception.getResponse() : exception;
 
     response.status(status).json({
-      statusCode: status,
+      statusCode: this.customStatus || status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      error: message,
+      error: this.customMessage || message,
     });
   }
 }

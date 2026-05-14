@@ -1,11 +1,11 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
-import * as express from 'express';
-import { join } from 'path';
-import { AppModule } from './app.module';
-import { ErrorHandler } from "./common/error-handling/errorhandler";
+import { ValidationPipe } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
+import cookieParser from 'cookie-parser'
+import express from 'express'
+import { join } from 'path'
+import { AppModule } from './app.module'
+import { setupSwagger } from './common/config/swagger.config'
+import { ErrorHandler } from './common/error-handling/errorhandler'
 export async function start() {
   try {
     const PORT = process.env.PORT || 3030;
@@ -20,15 +20,7 @@ export async function start() {
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       credentials: false,
     });
-    const config = new DocumentBuilder()
-      .setTitle('MyCRM Project')
-      .setDescription('MyCRM REST API')
-      .setVersion('1.0')
-      .addTag('Nest JS', 'Swagger')
-      .addBearerAuth()
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
+    setupSwagger(app);
     app.useGlobalFilters(new ErrorHandler());
     await app.listen(PORT, () => {
       console.log(`Server started on http://${HOST}:${PORT}`);

@@ -74,7 +74,7 @@ export class Event {
   pointForEvent: number;
 
   @ApiProperty({
-    example: 'Scheduled',
+    example: 'SCHEDULED',
     description: "This is the event's status",
   })
   @Prop({ required: true })

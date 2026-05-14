@@ -14,11 +14,7 @@ export class StaffsService {
   async create(createStaffDto: CreateStaffDto) {
     const staff = await this.staffModel.create(createStaffDto);
     return {
-      message: {
-        uz: 'Ishchi muvaffaqiyatli yaratildi',
-        ru: 'Сотрудник успешно создан',
-        en: 'Staff created successfully',
-      },
+      message: 'STAFF.CREATED',
       data: staff,
       success: true,
     };
@@ -36,21 +32,13 @@ export class StaffsService {
 
     if (data.length === 0) {
       return {
-        message: {
-          uz: 'Hozircha ishchilar mavjud emas',
-          ru: 'Пока что нет сотрудников',
-          en: 'No staffs yet',
-        },
+        message: 'STAFF.LIST_EMPTY',
         data: [],
         success: true,
       };
     }
     return {
-      message: {
-        uz: 'Ishchilar ro‘yxati',
-        ru: 'Список сотрудников',
-        en: 'List of staffs',
-      },
+        message: 'STAFF.LIST_FOUND',
       data: { staffs: data, total, page, limit },
       success: true,
     };
@@ -59,18 +47,10 @@ export class StaffsService {
   async findOne(id: string) {
     const staffs = await this.staffModel.findById(id).populate('user').exec();
     if (!staffs) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi topildi',
-        ru: 'Сотрудник найден',
-        en: 'Staff found',
-      },
+        message: 'STAFF.FOUND',
       data: staffs,
       success: true,
     };
@@ -82,18 +62,10 @@ export class StaffsService {
       .populate('user')
       .exec();
     if (!staff) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi topildi',
-        ru: 'Сотрудник найден',
-        en: 'Staff found',
-      },
+        message: 'STAFF.FOUND',
       data: staff,
       success: true,
     };
@@ -104,18 +76,10 @@ export class StaffsService {
       .findByIdAndUpdate(id, updateStaffDto, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi muvaffaqiyatli yangilandi',
-        ru: 'Сотрудник успешно обновлен',
-        en: 'Staff updated successfully',
-      },
+        message: 'STAFF.UPDATED',
       data: updated,
       success: true,
     };
@@ -124,18 +88,10 @@ export class StaffsService {
   async remove(id: string) {
     const deleted = await this.staffModel.findByIdAndDelete(id).exec();
     if (!deleted) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi muvaffaqiyatli o‘chirildi',
-        ru: 'Сотрудник успешно удален',
-        en: 'Staff deleted successfully',
-      },
+        message: 'STAFF.DELETED',
       data: { affected: 1 },
       success: true,
     };
@@ -146,18 +102,10 @@ export class StaffsService {
       .findByIdAndUpdate(userId, { salary }, { new: true })
       .exec();
     if (!staff) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi maoshi muvaffaqiyatli yangilandi',
-        ru: 'Зарплата сотрудника успешно обновлена',
-        en: 'Staff salary updated successfully',
-      },
+        message: 'STAFF.SALARY_UPDATED',
       data: staff,
       success: true,
     };
@@ -172,18 +120,10 @@ export class StaffsService {
       )
       .exec();
     if (!staff) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi maoshi to‘landi deb belgilandi',
-        ru: 'Зарплата сотрудника отмечена как выплаченная',
-        en: 'Staff salary marked as paid',
-      },
+        message: 'STAFF.SALARY_PAID',
       data: staff,
       success: true,
     };
@@ -194,18 +134,10 @@ export class StaffsService {
       .findByIdAndUpdate(userId, { position }, { new: true })
       .exec();
     if (!staff) {
-      throw new NotFoundException({
-        uz: 'Ishchi topilmadi',
-        ru: 'Сотрудник не найден',
-        en: 'Staff not found',
-      });
+      throw new NotFoundException('STAFF.NOT_FOUND');
     }
     return {
-      message: {
-        uz: 'Ishchi lavozimi muvaffaqiyatli yangilandi',
-        ru: 'Должность сотрудника успешно обновлена',
-        en: 'Staff position updated successfully',
-      },
+        message: 'STAFF.POSITION_UPDATED',
       data: staff,
       success: true,
     };
