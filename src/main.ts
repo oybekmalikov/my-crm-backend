@@ -44,7 +44,7 @@ export async function start() {
     });
     setupSwagger(app);
     app.useGlobalFilters(new ErrorHandler());
-    await app.listen(PORT, () => {
+    await app.listen(PORT, HOST, () => {
       console.log(`Server started on http://${HOST}:${PORT}`);
     });
   } catch (error) {
